@@ -1,0 +1,509 @@
+game.advance_to_root()
+        game.play_sequence(sequence[:i])
+        board_array = game.numpy()
+        state1 = get_all_stones(board_array)
+
+        game.advance_to_root()
+        #print(f'{len(sequence)}\n{i+1}\n')
+        game.play_sequence(sequence[:i+1])
+        board_array = game.numpy()
+        state2 = get_all_stones(board_array)
+
+        for j in range(361):
+            if state1[j]==state2[j]:
+                state1[j]=0
+            else:
+                state1[j]=1
+        all_board_states[i]=state1
+    return all_board_states
+
+original converter
+
+from pathlib import Path
+
+import numpy as np
+import sente
+from numpy import memmap
+from sente import sgf, stone
+import traceback
+
+def convert_game_targets_to_numpy(game):
+    game.advance_to_root()
+    sequence = game.get_default_sequence()
+    #print(len(sequence))
+
+    all_moves = np.empty((len(sequence),),dtype=np.uint16)
+    for i in range(len(sequence)):
+        x = sequence[i].get_x()+1
+        y = sequence[i].get_y()
+        game.play(sequence[i])
+        all_moves[i]=(y*19)+x
+    return all_moves
+
+
+
+def convert_game_inputs_to_numpy(game):
+
+    sequence = game.get_default_sequence()
+    all_board_states = np.empty((len(sequence), 19, 19, 4), dtype=np.uint8)
+
+    game.advance_to_root()
+    for i in range(len(sequence)):
+
+        game.play(sequence[i])
+        board = game.numpy()
+
+        if game.get_active_player() == stone.WHITE:
+            board = np.stack([board[..., 1], board[..., 0], board[..., 2], board[..., 3]], axis=2)
+
+        all_board_states[i] = board
+
+
+    return all_board_states
+#55436229 999027
+def convert_all_games():
+    director_path = Path(r'C:\Users\Jonah Benton\Downloads\9k\9k')
+
+    x_file=r'C:\Users\Jonah Benton\GO_trainig_data\test_x.npy'
+    y_file=r'C:\Users\Jonah Benton\GO_trainig_data\test_y.npy'
+    #1000000
+    x_data = np.empty((1000000, 19,19,4), dtype=np.uint8)
+    x_data.tofile(x_file)
+    y_data = np.ones((1000000,), dtype=np.uint16)
+    y_data.tofile(y_file)
+
+    #x = np.empty((210000, 19,19,4), dtype=np.uint8)
+    x = np.memmap(x_file, dtype=np.uint8, mode='r+', shape=(1000000, 19,19,4))
+    #y = np.empty((210000,), dtype=np.uint16)
+    y = np.memmap(y_file, dtype=np.uint16, mode='r+', shape=(1000000,))
+
+    total_errors=0
+    total_frames=0
+
+    for index, file_path in enumerate(director_path.iterdir()):
+        game = sgf.load(str(file_path), ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True)
+        sequence = game.get_default_sequence()
+        current_frames=len(sequence)
+
+        try:
+            input_data = convert_game_inputs_to_numpy(game)
+            target_data = convert_game_targets_to_numpy(game)
+            x[total_frames:total_frames+current_frames] = input_data
+            y[total_frames:total_frames+current_frames] = target_data
+            total_frames += current_frames
+        except sente.exceptions.IllegalMoveException:
+            total_errors+=1
+        except ValueError as e:
+            print(e)
+            break
+        if index%10==0:
+            print(index)
+
+        if total_frames>999000:
+            print(f'{total_errors}\n{total_frames}')
+
+            print(y)
+            x.flush()
+            y.flush()
+            break
+
+convert_all_games()
+
+yp = np.ones(999828, dtype=np.uint8)
+yn = np.zeros(999828*5, dtype=np.uint8)
+
+y = np.hstack((yp, yn))
+
+#model = SGDClassifier(class_weight={0: 5, 1: 1}, loss='log_loss')
+model = RandomForestClassifier(class_weight={0: 5, 1: 1}, n_estimators=400, max_depth=50, n_jobs=-1)
+
+batch_size=100000
+N = len(y)
+indices = np.arange(N)
+np.random.shuffle(indices)
+print('starting training')
+for i in range(0, N-20000, batch_size):
+    batch = indices[:batch_size]
+
+    x_batch = X[batch].reshape(batch_size, -1)
+    y_batch = y[batch]
+
+    model.partial_fit(x_batch, y_batch, classes=[0,1])
+
+    print(f'batch {i} of 5980000 done')
+
+print('testing')
+
+first_batch = indices[5998968-10000:]
+
+preds = model.predict(X[first_batch].reshape(10000, -1))
+
+print(balanced_accuracy_score(y[first_batch], preds,))
+
+
+class MoveQualityCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.features = nn.Sequential(
+            nn.Conv2d(5, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            # Repeat this block 5-10 times
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+        )
+
+        # Final layers
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(128 * 19 * 19, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5),  # Helps prevent the model from just memorizing 9k moves
+            nn.Linear(256, 1)
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+        batch_idx = indices[i:i+batch_size]
+
+        X_batch = X[batch_idx].transpose(0, 3, 1, 2)
+
+
+        y_batch = y[batch_idx]
+
+        X_batch = torch.tensor(X_batch, dtype=torch.float32)
+        y_batch = torch.tensor(y_batch, dtype=torch.float32).unsqueeze(1)
+
+        X_batch = X_batch.to(device)
+        y_batch = y_batch.to(device)
+        # forward
+        preds = model(X_batch)
+
+        loss = criterion(preds, y_batch)
+        total_loss+=loss.item()
+        # backward
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+WORKING CODE
+import random
+
+import sklearn
+import numpy as np
+import pathlib
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
+from sklearn.model_selection import train_test_split
+from joblib import dump
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import TensorDataset, DataLoader
+
+X = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_x_testSet.npy', dtype=np.uint8, mode='r+', shape=(1000000-10000, 19, 19, 4))
+y = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_y_testSet.npy', dtype=np.uint16, mode='r+', shape=(1000000-10000,))
+
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# AI generated
+
+class ResBlock(nn.Module):
+    def __init__(self, channels):
+        super(ResBlock, self).__init__()
+        # Keep kernel=3, padding=1 to maintain 19x19 size
+        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(channels)
+        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(channels)
+
+    def forward(self, x):
+        identity = x  # Save the input for the skip connection
+
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+
+        out += identity  # Add the original input back (the skip)
+        return F.relu(out)
+
+
+class GoPolicyResNet(nn.Module):
+    def __init__(self, num_blocks=20):
+        super(GoPolicyResNet, self).__init__()
+
+        # Initial Layer: Converts 5 input planes to 64 feature maps
+        self.start = nn.Sequential(
+            nn.Conv2d(4, 128, kernel_size=3, padding=1),  # 4 planes: B, W, Lib, Ko
+            nn.BatchNorm2d(128),
+            nn.ReLU()
+        )
+
+        # Stack of Residual Blocks
+        self.res_blocks = nn.Sequential(*[ResBlock(128) for _ in range(num_blocks)])
+
+        # Output Layer: Global Average Pooling + Linear
+        self.policy_head = nn.Sequential(
+            nn.Conv2d(128, 2, kernel_size=1),  # Reduce depth to 2 channels
+            nn.BatchNorm2d(2),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(2 * 19 * 19, 361)  # Map to 361 coordinates
+        )
+
+    def forward(self, x):
+        x = self.start(x)
+        for block in self.res_blocks:
+            x = block(x)
+        return self.policy_head(x)
+
+model = GoPolicyResNet().to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+criterion = nn.CrossEntropyLoss()
+num_epochs = 1
+
+N = len(y)
+indices = np.arange(N)
+
+batch_size = 128
+
+for epoch in range(1):
+    total_loss = 0
+    #np.random.shuffle(indices)
+
+    for i in range(0, N, batch_size):
+        #print('made it to here')
+        batch_idx = indices[i:i + batch_size]
+
+        X_batch = X[batch_idx].transpose(0, 3, 1, 2)
+
+        y_batch = y[batch_idx]
+
+        X_batch = torch.tensor(X_batch, dtype=torch.float32)
+        y_batch = torch.tensor(y_batch, dtype=torch.long).view(-1)
+
+        X_batch = X_batch.to(device)
+        y_batch = y_batch.to(device)
+        # forward
+        preds = model(X_batch)
+
+        loss = criterion(preds, y_batch)
+        total_loss += loss.item()
+        # backward
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        with torch.no_grad():
+            # 1. Calculate Top-1 Accuracy
+            _, predicted_move = torch.max(preds, 1)
+            correct_top1 = (predicted_move == y_batch).sum().item()
+            batch_acc_top1 = (correct_top1 / y_batch.size(0)) * 100
+
+            # 2. Calculate Top-5 Accuracy (Very useful for Go)
+            _, top5_preds = torch.topk(preds, k=5, dim=1)
+            correct_top5 = torch.any(top5_preds == y_batch.unsqueeze(1), dim=1).sum().item()
+            batch_acc_top5 = (correct_top5 / y_batch.size(0)) * 100
+
+            # 3. Update Running Totals
+            running_loss = 0.9 * running_loss + 0.1 * loss.item() if 'running_loss' in locals() else loss.item()
+            running_acc1 = 0.9 * running_acc1 + 0.1 * batch_acc_top1 if 'running_acc1' in locals() else batch_acc_top1
+
+            # 4. Print Status every 10 batches (avoids flickering)
+            #if (i // batch_size) % 10 == 0:
+            #print('made it to here')
+            print(f"Batch: {i // batch_size:<5} | "
+                      f"Loss: {loss.item():.4f} (Avg: {running_loss:.4f}) | "
+                      f"Top-1 Acc: {batch_acc_top1:>5.2f}% (Avg: {running_acc1:.2f}%) | "
+                      f"Top-5 Acc: {batch_acc_top5:>5.2f}%",)
+
+
+def evaluate_model(model, test_loader, device):
+    # 1. Put model in evaluation mode (VERY IMPORTANT)
+    model.eval()
+
+    total_samples = 0
+    total_top1 = 0
+    total_top5 = 0
+    total_loss = 0
+    criterion = torch.nn.CrossEntropyLoss()
+
+    print("\n--- Starting Full Evaluation ---")
+
+    with torch.no_grad():  # Disable gradient calculation for speed/memory
+        for i, (X_batch, y_batch) in enumerate(test_loader):
+            X_batch = X_batch.to(device)
+            y_batch = y_batch.to(device).long().view(-1)
+
+            # Forward pass
+            logits = model(X_batch)
+            loss = criterion(logits, y_batch)
+
+            # Calculate Top-1
+            _, predicted = torch.max(logits, 1)
+            total_top1 += (predicted == y_batch).sum().item()
+
+            # Calculate Top-5
+            _, top5_preds = torch.topk(logits, k=5, dim=1)
+            total_top5 += torch.any(top5_preds == y_batch.unsqueeze(1), dim=1).sum().item()
+
+            total_samples += y_batch.size(0)
+            total_loss += loss.item()
+
+            # Print progress every 10 batches
+            if i % 10 == 0:
+                print(f"Processed: {total_samples:<6} | Current Top-1: {(total_top1 / total_samples) * 100:.2f}%",
+                      )
+
+    # Calculate final stats
+    final_acc1 = (total_top1 / total_samples) * 100
+    final_acc5 = (total_top5 / total_samples) * 100
+    avg_loss = total_loss / len(test_loader)
+
+    print(f"\n\nFINAL EVALUATION RESULTS:")
+    print(f"{'-' * 30}")
+    print(f"Total Samples: {total_samples}")
+    print(f"Average Loss:  {avg_loss:.4f}")
+    print(f"Top-1 Acc:     {final_acc1:.2f}%")
+    print(f"Top-5 Acc:     {final_acc5:.2f}%")
+    print(f"{'-' * 30}\n")
+
+    # Put model back into training mode
+    model.train()
+    return final_acc1, final_acc5
+
+X_test = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_x_testSet.npy', dtype=np.uint8, mode='r+', shape=(1000000, 19, 19, 4))
+y_test = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_y_testSet.npy', dtype=np.uint16, mode='r+', shape=(1000000,))
+X_test = X_test[1000000-10000:]
+y_test = y_test[1000000-10000:]
+
+test_dataset = TensorDataset(
+    torch.from_numpy(X_test).permute(0, 3, 1, 2).float(),
+    torch.from_numpy(y_test).long().view(-1)
+)
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=64,      # Keep this small to avoid OOM
+    shuffle=False,      # No need to shuffle for evaluation
+    pin_memory=True,    # Speeds up transfer to 4070 Ti
+    num_workers=0       # Uses CPU threads to prep the next batch
+)
+
+print(evaluate_model(model, test_loader, device))
+
+#X = np.memmap(file_path_X, dtype=np.uint8, mode='r', shape=(5998968, 19, 19, 5))
+
+#yp = np.ones(999828, dtype=np.uint8)
+#yn = np.zeros(999828*5, dtype=np.uint8)
+
+#y = np.hstack((yp, yn))
+
+
+
+
+'''
+model = RandomForestClassifier(n_estimators=400, random_state=42, max_depth=200, max_leaf_nodes=20, n_jobs=-1)
+print('starting split')
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=42, shuffle=False)
+
+
+X_train_size = X_train.shape[0]
+X_test_size = X_test.shape[0]
+
+X_train = X_train.reshape(X_train_size, -1)
+X_test = X_test.reshape(X_test_size, -1)
+
+
+
+
+print('done, starting fit')
+model.fit(X_train, y_train)
+
+#dump(model, 'test_model.joblib')
+print('done, starting test')
+preds = model.predict(X_test)
+
+print(accuracy_score(y_test, preds))
+print(preds)
+print(y_test)
+#0.018197651722170506
+
+
+def data_generator():
+    for i in range(len(X_train_memmap)):
+        yield X_train_memmap[i], y_train_memmap[i]
+
+
+shape_X = (19, 19, 4)
+shape_y = ()
+
+dataset = tf.data.Dataset.from_generator(
+    generator=data_generator,
+    output_shapes=(shape_X, shape_y),
+    output_types=(np.float32, np.float32)
+)
+
+dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
+    tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
+    tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
+    tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(256, activation="relu"),
+    tf.keras.layers.Dense(362)
+])
+
+model.compile(
+    optimizer="adam",
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"]
+)
+
+model.fit(dataset, epochs=1)
+'''
