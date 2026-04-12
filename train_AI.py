@@ -1,18 +1,26 @@
-
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
 
-X = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_x_testSet.npy', dtype=np.uint8, mode='r+', shape=(1000000-10000, 19, 19, 4))
-y = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_y_testSet.npy', dtype=np.uint16, mode='r+', shape=(1000000-10000,))
+total_frames = 1000000 # total frames to use for training/testing
+test_frames = 10000 # frames to hold out of training for test purposes
+training_data_path ='TrainingData'
+
+X = np.memmap(rf'{training_data_path}\X_file.npy', dtype=np.uint8, mode='r+', shape=(total_frames, 19, 19, 4))
+y = np.memmap(rf'{training_data_path}\y_file.npy', dtype=np.uint16, mode='r+', shape=(total_frames,))
+
+X_train = X[:total_frames-test_frames]
+y_train = y[:total_frames-test_frames]
+
+X_test = X[total_frames-test_frames:]
+y_test = y[total_frames-test_frames:]
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Trains on nvidia gpu if available
+
 # AI generated
-
 class ResBlock(nn.Module):
     def __init__(self, channels):
         super(ResBlock, self).__init__()
@@ -60,26 +68,25 @@ class GoPolicyResNet(nn.Module):
         for block in self.res_blocks:
             x = block(x)
         return self.policy_head(x)
+# End of AI generated block
 
 model = GoPolicyResNet().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 criterion = nn.CrossEntropyLoss()
 num_epochs = 1
-
-
 batch_size = 128
 
 train_dataset = TensorDataset(
-    torch.from_numpy(X).permute(0, 3, 1, 2).float(),
-    torch.from_numpy(y).long().view(-1)
+    torch.from_numpy(X_train).permute(0, 3, 1, 2).float(),
+    torch.from_numpy(y_train).long().view(-1)
 )
 
 train_loader = DataLoader(
     train_dataset,
-    batch_size=256,      # Keep this small to avoid OOM
-    shuffle=False,      # No need to shuffle for evaluation
-    pin_memory=True,    # Speeds up transfer to 4070 Ti
-    num_workers=0       # Uses CPU threads to prep the next batch
+    batch_size=256,
+    shuffle=False,
+    pin_memory=True,
+    num_workers=0
 )
 
 for epoch in range(1):
@@ -99,6 +106,7 @@ for epoch in range(1):
         loss.backward()
         optimizer.step()
 
+# AI generated
         with torch.no_grad():
             # 1. Calculate Top-1 Accuracy
             _, predicted_move = torch.max(preds, 1)
@@ -176,11 +184,8 @@ def evaluate_model(model, test_loader, device):
     # Put model back into training mode
     model.train()
     return final_acc1, final_acc5
+# End of AI generated block
 
-X_test = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_x_testSet.npy', dtype=np.uint8, mode='r+', shape=(1000000, 19, 19, 4))
-y_test = np.memmap(r'C:\users\Jonah Benton\GO_trainig_data\test_y_testSet.npy', dtype=np.uint16, mode='r+', shape=(1000000,))
-X_test = X_test[1000000-10000:]
-y_test = y_test[1000000-10000:]
 
 test_dataset = TensorDataset(
     torch.from_numpy(X_test).permute(0, 3, 1, 2).float(),
@@ -189,12 +194,12 @@ test_dataset = TensorDataset(
 
 test_loader = DataLoader(
     test_dataset,
-    batch_size=64,      # Keep this small to avoid OOM
-    shuffle=False,      # No need to shuffle for evaluation
-    pin_memory=True,    # Speeds up transfer to 4070 Ti
-    num_workers=0       # Uses CPU threads to prep the next batch
+    batch_size=64,
+    shuffle=False,
+    pin_memory=True,
+    num_workers=0
 )
 
 print(evaluate_model(model, test_loader, device))
 
-torch.save(model.state_dict(), 'Go_Model_8d.pth')
+#torch.save(model.state_dict(), 'Go_Model_8d.pth')

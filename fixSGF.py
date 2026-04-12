@@ -1,11 +1,12 @@
 from pathlib import Path
-
+# The SGF file we have in out data set somtimes are in an outdated format
+# This code update the files to a modern format compatible with sente
 director_path = Path(r'C:\Users\Jonah Benton\Downloads\8k2\8d')
-x =0
+x = 0
 for file_path in director_path.iterdir():
     x+=1
-    if x % 1000 == 0:
-        print(x)
+    if x % 1000 == 0: # Print progress updates
+        print(f'Fixed {x} files')
 
     with open(file_path, 'r') as file:
         contents = file.read()
