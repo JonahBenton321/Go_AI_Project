@@ -19,7 +19,7 @@ class AIHandler:
         best_model.load_state_dict(state_dict)
 
     def set_main_model(self, model_name):
-        state_dict = torch.load('Go_Model_8d.pth', weights_only=True)
+        state_dict = torch.load(model_name, weights_only=True)
         model.load_state_dict(state_dict)
 
     def infer_distubution(self, game, current_model=model):
