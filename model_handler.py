@@ -9,19 +9,27 @@ model = GoPolicyResNet()
 best_model = GoPolicyResNet()
 color = sente.WHITE # default to white
 
-class AIHandler:
+class AIHandler: # Main class which handles interaction with the systems AI models
 
-    def __init__(self, model_path):
+    def __init__(self, model_path,):
         state_dict = torch.load(model_path, weights_only=True)
         model.load_state_dict(state_dict)
 
-        state_dict = torch.load(model_path, weights_only=True) # right now the "best model" is the only model we have. this NEEDS to be fixed in the future
+        state_dict = torch.load('Go_model_8d.pth', weights_only=True) # This is the model trained on the highest skill level
         best_model.load_state_dict(state_dict)
 
-    def set_main_model(self, model_name):
-        state_dict = torch.load('Go_Model_8d.pth', weights_only=True)
+    def set_main_model(self, model_name): # Allows switching models at any point
+        state_dict = torch.load(model_name, weights_only=True)
         model.load_state_dict(state_dict)
 
+    def set_color(self, new_color):
+        global color
+        color = new_color
+
+
+    # Returns a numpy array which contains all possible moves
+    # Array is in best to worst order (best move is at index 0)
+    # A moves are single integers like '288' not coordinates
     def infer_distubution(self, game, current_model=model):
         board = game.numpy()
 
@@ -34,31 +42,37 @@ class AIHandler:
             output = current_model(input_data)
             dist = torch.topk(output, k=361, dim=1)
 
-            return dist[1].numpy()[0]
+            return dist[1].numpy()[0] # Returns allow the list of moves removing the tensor
 
+    # Returns the model's best predicted move as tuple where index 0 is x and index y is 1
+    # Returned move is always legal
     def infer_best_move(self, game, total_moves=0, current_model=model):
-        move_dist = self.infer_distubution(game, current_model=model)
+        move_dist = self.infer_distubution(game, current_model=current_model)
         score_estimate = self.estimate_score(game)
 
-        if color == stone.WHITE:
+        if color == stone.WHITE: # Helps to flip score estimation if model is white
             score_estimate*=-1
 
+        # Causes the model to resign or pass if it is late in the game and the model is losing
         if score_estimate > 20 and total_moves > 150:
             return 'resign'
 
         if score_estimate > 10 and total_moves > 150:
             return 'pass'
 
-        for move in move_dist:
+        for move in move_dist: # Loops over all move until a legal move is found
+            # Translates a move as a single integer to coordinate e.g. 288 becomes x=3, y=15
             y=int(move/19)
             x = move-(y*19)
 
             if game.is_legal(x,y):
                 return x, y
 
-    def recommend_move(self, game):
+    def recommend_move(self, game): # Return the move the best model would play
         return self.infer_best_move(game, current_model=best_model)
 
+    # Returns where to user's move falls in the model's predicted distribution
+    # If the user picked what the model thinks is the best move then the play is given rank 0
     def find_rank_in_distribution(self, distribution, move):
         translated_move = (move[0]*19)+move[1]
         index = np.where(distribution == translated_move)
@@ -68,6 +82,7 @@ class AIHandler:
 
         return index[0]
 
+    # Returns a label for the quality of the user's move
     def rate_move(self, distribution, move):
         rank = self.find_rank_in_distribution(distribution, move)
 
@@ -81,6 +96,7 @@ class AIHandler:
     def rate_user_move(self, game, move): # Must be called before updating sente with the users move
         return self.rate_move(self.infer_distubution(game), move)
 
+    # Instance of 'Bouzy Algorithm' to estimate the score of the game
     def create_score_heat_map(self, game):
         board_array = np.zeros((19, 19))
         board_array[game.numpy()[:, :, 0] == 1] = 1 # Black stones are 1
@@ -102,6 +118,7 @@ class AIHandler:
 
         return heat_map
 
+    # Uses the territory heat map to estimate the score of the game and return
     def estimate_score(self, game):
         territory_map = self.create_score_heat_map(game)
         black = np.sum(territory_map > 0.2)

@@ -25,7 +25,7 @@ class GoPolicyResNet(nn.Module):
     def __init__(self, num_blocks=20):
         super(GoPolicyResNet, self).__init__()
 
-        # Initial Layer: Converts 5 input planes to 64 feature maps
+        # Initial Layer: Converts 4 input planes to 128 feature maps
         self.start = nn.Sequential(
             nn.Conv2d(4, 128, kernel_size=3, padding=1),  # 4 planes: B, W, Lib, Ko
             nn.BatchNorm2d(128),

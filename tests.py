@@ -29,8 +29,6 @@ class TestModelHandler(unittest.TestCase):
 
         game.play_sequence(sequence[25:len(sequence)])
         move = model.infer_best_move(game, len(sequence))
-        print(game.get_winner())
-        print(len(sequence))
         self.assertEqual(move, 'pass')
 
     def test_move_rating(self,):
@@ -44,9 +42,9 @@ class TestModelHandler(unittest.TestCase):
         move = (3, 2)
         self.assertEqual(model.find_rank_in_distribution(distribution, move), 7)
 
-        random_dist = np.arange(1, 362, )
+        random_dist = np.arange(1, 362, ) # simulates a real distribution by random shuffling values from 1-361
         rng = np.random.default_rng(seed=42)
-        rng.shuffle(random_dist) #208 #7 # 206 # 353
+        rng.shuffle(random_dist)
         move = (10, 18)
         self.assertEqual(model.rate_move(random_dist, move), 'Excellent')
         move = (0, 7)
@@ -55,3 +53,15 @@ class TestModelHandler(unittest.TestCase):
         self.assertEqual(model.rate_move(random_dist, move), 'Blunder')
         move = (18, 11)
         self.assertEqual(model.rate_move(random_dist, move), 'Mediocre')
+
+    def test_multi_models(self):# ensures tests work with all models
+
+        model.set_main_model('Go_Model_1k.pth')
+        self.test_infer_distribution()
+        self.test_infer_move()
+        self.test_move_rating()
+
+        model.set_main_model('Go_Model_18k.pth')
+        self.test_infer_distribution()
+        self.test_infer_move()
+        self.test_move_rating()

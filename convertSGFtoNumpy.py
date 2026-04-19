@@ -4,14 +4,14 @@ import sente
 from sente import sgf, stone
 
 # Directory of SGF data and training data
-SGF_directory_path = Path(r'C:\Users\Jonah Benton\Downloads\8k2\8d')
-training_data_path = Path(r'TrainingData')
+SGF_directory_path = Path(r'C:\Users\Jonah Benton\Downloads\18k2\18k')
+training_data_path = Path(r'TrainingData-18k')
 # Number of board states to convert to training data
 num_frames = 1001000
 
 training_data_path.mkdir(exist_ok=True)
 
-# Converts all moves in agame to target data by converting human move to a single number representing the move location
+# Converts all moves in a game to target data by converting human move to a single number representing the move location
 def convert_move_to_numpy(game):
     game.advance_to_root()
     sequence = game.get_default_sequence()
@@ -64,9 +64,13 @@ def convert_all_games():
 
     for index, file_path in enumerate(SGF_directory_path.iterdir()):
         # Loads one game from the SGF directory
-        game = sgf.load(str(file_path), ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True)
-        sequence = game.get_default_sequence()
-        current_frames=len(sequence)
+        try:
+            game = sgf.load(str(file_path), ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True)
+            sequence = game.get_default_sequence()
+            current_frames = len(sequence)
+        except sente.exceptions.InvalidSGFException:
+            total_errors += 1
+            continue
 
         try: # Fills the Training data frames with the converted data
             x[total_frames:total_frames+current_frames] = convert_board_state_to_numpy(game)
@@ -77,15 +81,16 @@ def convert_all_games():
         except sente.exceptions.IllegalMoveException:
             total_errors+=1
 
+
         except ValueError as e:
             print(e)
             break
 
         if index%100==0: # Prints progress updates to the console
-            print(f'Converted {index} board states')
+            print(f'Converted {index} games')
 
         if total_frames>num_frames-1000: # Stops loop before the array size limit is reached
-            print(f'{total_errors}\n{total_frames}')
+            print(f'Total Errors {total_errors}\nTotal Frames {total_frames}')
             x.flush()
             y.flush()
             break

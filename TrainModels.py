@@ -6,7 +6,7 @@ from GoPolicyNet import GoPolicyResNet
 
 total_frames = 1000000 # total frames to use for training/testing
 test_frames = 10000 # frames to hold out of training for test purposes
-training_data_path ='TrainingData'
+training_data_path ='TrainingData-18k'
 
 X = np.memmap(rf'{training_data_path}\X_file.npy', dtype=np.uint8, mode='r+', shape=(total_frames, 19, 19, 4))
 y = np.memmap(rf'{training_data_path}\y_file.npy', dtype=np.uint16, mode='r+', shape=(total_frames,))
@@ -20,7 +20,7 @@ y_test = y[total_frames-test_frames:]
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Trains on nvidia gpu if available
 
-
+# set up model
 model = GoPolicyResNet().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 criterion = nn.CrossEntropyLoss()
@@ -31,7 +31,7 @@ train_dataset = TensorDataset(
     torch.from_numpy(X_train).permute(0, 3, 1, 2).float(),
     torch.from_numpy(y_train).long().view(-1)
 )
-
+# Set up training data
 train_loader = DataLoader(
     train_dataset,
     batch_size=256,
@@ -39,7 +39,7 @@ train_loader = DataLoader(
     pin_memory=True,
     num_workers=0
 )
-
+# Train model
 for epoch in range(1):
     total_loss = 0
 
@@ -137,7 +137,7 @@ def evaluate_model(model, test_loader, device):
     return final_acc1, final_acc5
 # End of AI generated block
 
-
+# create test set
 test_dataset = TensorDataset(
     torch.from_numpy(X_test).permute(0, 3, 1, 2).float(),
     torch.from_numpy(y_test).long().view(-1)
@@ -153,4 +153,10 @@ test_loader = DataLoader(
 
 print(evaluate_model(model, test_loader, device))
 
-torch.save(model.state_dict(), 'Go_Model_8d.pth')
+torch.save(model.state_dict(), 'Go_Model_18k.pth')
+
+# 20.7
+# 44.99
+
+# 24
+# 47
