@@ -86,17 +86,21 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
     def rate_move(self, distribution, move):
         rank = self.find_rank_in_distribution(distribution, move)
 
-        if rank < 6:
-            return 'Excellent'
-        elif rank < 51:
-            return 'Mediocre'
+        if rank < 21:
+            return 'Excellent '+str(rank)
+        elif rank < 201:
+            return 'Mediocre '+str(rank)
         else:
-            return 'Blunder'
+            return 'Blunder '+str(rank)
 
     def rate_user_move(self, game, move): # Must be called before updating sente with the users move
-        return self.rate_move(self.infer_distubution(game), move)
+        return self.rate_move(self.infer_distubution(game, current_model=best_model), move)
 
-    # Instance of 'Bouzy Algorithm' to estimate the score of the game
+    # Implementation of 'Bouzy's Algorithm' to estimate the score of the game
+    # The algorithm was recommended and explained in part by AI
+    # The code here is based on the AI description of the algorithm and uses the AI recommended kernal, convolve, and threshold level (0.2)
+    # However the code is unique to our system because of how sente handle's the board internally
+    # All code was written by hand
     def create_score_heat_map(self, game):
         board_array = np.zeros((19, 19))
         board_array[game.numpy()[:, :, 0] == 1] = 1 # Black stones are 1

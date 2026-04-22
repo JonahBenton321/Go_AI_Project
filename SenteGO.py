@@ -1,6 +1,7 @@
 # NOTICE: The was restructured into the __init__() and other def X() style under classes through
 # the direct involvement of Google AI.
 # The underlying code was freshly sourced through articles and YouTube tutorials.
+from math import gamma
 
 import sente
 import tkinter as tk
@@ -98,6 +99,8 @@ class GOGame(AIHandler):
             self.button = tk.Button(root, text='Make Move', width=25, command=self.makeMoveWhite)
             self.button.pack()
 
+        super().__init__('Go_Model_8d.pth')
+
     def endGame():
         results = game.get_results()
         white_won = 'w' in results.lower()
@@ -108,8 +111,9 @@ class GOGame(AIHandler):
             
 
     # Player and AI Moves in Game
-    def makeMoveBlack(self):
+    def makeMoveBlack(self): # all changes here must be repeated in the other 'white' move function
         ### USER TURN
+
         # Allow for leway in user input for more accessible gameplay.
         user_input = simpledialog.askstring("Input", f"Move (ie: X,Y): ")
         user_input = user_input.replace(" ", "")
@@ -122,17 +126,19 @@ class GOGame(AIHandler):
             x, y = map(int, user_input.split(','))
             # Flip coordinates to match classic X,Y Graph coordinates.
             # y = 20 - y
+            rateMove = AIHandler.rate_user_move(self, game, (x, y))
             game.play(x,y)
         # Update UI with move.
         self.gameBoard.config(text=str(game), font = "Courier 20")
         self.turnIndicator.config(text="\nAI TURN", font = "Verdana 15 bold")
 
-        ### AI TURN
-        game.play(19,19)
 
-        rateMove = AIHandler.rate_user_move(self, game, user_input)
-        recommendMove = AIHandler.recommend_move(self, game)
-        
+
+        ### AI TURN
+        model_x, model_y = AIHandler.infer_best_move(self, game)
+        game.play(model_x, model_y)
+
+        recommendMove = str(AIHandler.recommend_move(self, game))
         # Update UI with move.
         self.gameBoard.config(text=str(game), font = "Courier 20")
         self.moveRating.config(text="\nUser Move Rating: : " + rateMove, font = "Verdana 15 bold")
@@ -175,7 +181,8 @@ class GOGame(AIHandler):
         self.turnIndicator.config(text="\nAI TURN", font = "Verdana 15 bold")
 
         if game.is_over():
-            end_game()
+            print('end game')
+            #end_game()
 
 #class winnerPage:
     #if (white_won and user_color.lower() == 'w') or (black_won and user_color.lower() == 'b'):

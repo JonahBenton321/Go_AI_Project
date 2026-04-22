@@ -13,7 +13,10 @@ class TestModelHandler(unittest.TestCase):
         game.advance_to_root()
         game.play_sequence(sequence[:25])
 
-        self.assertEqual(len(model.infer_distubution(game)), 361)
+        inference = model.infer_distubution(game)
+        self.assertEqual(len(inference), 361)
+        self.assertEqual(inference.dtype, np.int64)
+
 
     def test_infer_move(self):
         game.advance_to_root()
