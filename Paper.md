@@ -250,18 +250,18 @@ if total_frames>num_frames-1000: # Stops loop before the array size limit is rea
 This code is tasked with periodically printing updates to the console and ending the loop when the target number of board states/moves are converted. The code will print a simple update every 100 converted games. The final statement is responsible for ending the loop once all necessary conversions are complete. It does this by checking if the total number of converted frames is greater than the number of desired frames minus a buffer window of 1000 frames. Because games of Go are not deterministic it's impossible to know how many frames will be converted per game so here a buffer of 1000 frames are used to ensure that the memory limitations of the numpy arrays are never exceeded as it's virtually impossible for game of Go to exceed 1000 moves. The final lines of code are the flush function which commits the changes to the x and y memmap arrays to the disk.
 
 All put together this code can convert an arbitrary number of SGF files into usable numpy data frames for model training and evaluation.
-## Test Procedures
+# Test Procedures
 Because our AI systems are not deterministic most of our tests revolve around ensuring that the model is producing correctly structured data. This involves things such as ensuring the model is inferring correct rankings of all possible moves, that the code is selecting only legal moves, and labeling user moves appropriately. Following a series of test protocols designed to achieve these aims.
-# Model Inference
+## Model Inference
 Because the model needs to output a ranking of moves across the entire board space of 361 possible moves a test can be designed to ensure the model output is appropriately structured. This test protocol ensures that the output distribution of the model is a list of integers 361 indexes in length.
-# Move Legality
+## Move Legality
 Because our models are tasked with playing a game of Go, their output needs to consist of moves on a 19 by 19 grid and be legal relative to the current board state. This means that the model's output of rank moves in the form of a single integers. must be converted into a two-dimensional coordinate. This test procedure ensures that the two-dimensional coordinate output by the code is within the confines of a standard game of Go in legal as per the rules.
-# Move Ranking
+## Move Ranking
 Our system is tasked with offering move ratings to the user upon request. This involves predicting a best to worse ranking of all moves across the entire board space. And finding the user’s move in that list. Our system tests this functionality by submitting a mock distribution with known rankings for individual move coordinates. If the code correctly labels individual coordinates with the correct ranking this validates the underlying ranking logic.
 Along with finding the ordinal ranking of the user's move the system must also correctly label it as either excellent mediocre or a blunder. This can be done by creating a mock distribution of numbers 1 to 361 randomly shuffled in a deterministic fashion to mimic a distribution created by the models. Because the distribution is deterministic, certain coordinate locations of moves have predefined labels which can then be tested. If the code correctly returns the correct labels for the correct move coordinates, then it is working appropriately.
-# Manual Play Testing
+## Manual Play Testing
 The final test our AI model undergoes is a play test to catch problems with move selection, rating, or recommendation which cannot be caught by automated tests. This manual test looks for problems like illogical moves, nonsensical ratings, or non alignment between recommendations and move quality rating. This testing helps to eliminate problems with non-deterministic code which automated tests cannot identify.
-# Test Driven Development
+## Test Driven Development
 The purpose of this test was to ensure that the inference function produced a list of 361 distinct integers which serve as a ranking of each possible move. Should the function fail to return a list of integers of the appropriate properties the test will fail.
 
 Failing test:
