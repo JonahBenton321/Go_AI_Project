@@ -81,7 +81,6 @@ def convert_all_games():
         except sente.exceptions.IllegalMoveException:
             total_errors+=1
 
-
         except ValueError as e:
             print(e)
             break
@@ -94,5 +93,10 @@ def convert_all_games():
             x.flush()
             y.flush()
             break
-
-convert_all_games()
+game = sgf.load(r'C:\Users\Jonah Benton\Downloads\8k2\8d\1450096454019999203.sgf', ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True)
+game.advance_to_root()
+sequence = game.get_default_sequence()
+game.play(sequence[0])
+print(sequence[0].get_x(), sequence[0].get_y())
+print(game)
+#convert_all_games()

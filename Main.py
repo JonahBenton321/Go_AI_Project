@@ -13,6 +13,48 @@ from model_handler import AIHandler
 
 # right now main is test ground for ideas like the model playing itself
 
+
+random_dist = np.arange(0, 361, ) # simulates a real distribution by random shuffling values from 1-361
+rng = np.random.default_rng(seed=42)
+rng.shuffle(random_dist)
+print(random_dist[18])
+
+game = sente.Game()
+model1 = AIHandler('Go_Model_18k.pth')
+model1.set_color(stone.BLACK)
+model2 = AIHandler('Go_Model_8d.pth')
+total_moves=0
+for i in range(200):
+    move = model1.infer_best_move(game, total_moves=total_moves)
+    if move == 'pass':
+        game.pss()
+        print('black pass')
+    elif move == 'resign':
+        game.resign()
+        print('black', move, total_moves)
+        break
+    else:
+        x, y = move
+        game.play(x, y)
+    total_moves+=1
+    print(game)
+
+    move = model2.infer_best_move(game, total_moves=total_moves)
+    if move == 'pass':
+        game.pss()
+        print('white pass')
+    elif move == 'resign':
+        game.resign()
+        print('white', move, total_moves)
+        break
+    else:
+        x, y = move
+        game.play(x, y)
+    total_moves += 1
+    print(game)
+
+print(model1.estimate_score(game))
+
 '''
 game.advance_to_root()
 game.play_sequence(sequence[:len(sequence)])

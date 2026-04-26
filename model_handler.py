@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import sente
 from scipy.ndimage import convolve
@@ -5,32 +7,39 @@ from sente import sgf, stone
 import torch
 from GoPolicyNet import GoPolicyResNet
 
-model = GoPolicyResNet()
-best_model = GoPolicyResNet()
-color = sente.WHITE # default to white
+#model = GoPolicyResNet()
+#best_model = GoPolicyResNet()
+#color = sente.WHITE # default to white
 
 class AIHandler: # Main class which handles interaction with the systems AI models
 
     def __init__(self, model_path,):
+        self.model = GoPolicyResNet()
         state_dict = torch.load(model_path, weights_only=True)
-        model.load_state_dict(state_dict)
+        self.model.load_state_dict(state_dict)
 
+        self.best_model = GoPolicyResNet()
         state_dict = torch.load('Go_model_8d.pth', weights_only=True) # This is the model trained on the highest skill level
-        best_model.load_state_dict(state_dict)
+        self.best_model.load_state_dict(state_dict)
+
+        self.color = sente.WHITE  # default to white
 
     def set_main_model(self, model_name): # Allows switching models at any point
         state_dict = torch.load(model_name, weights_only=True)
-        model.load_state_dict(state_dict)
+        self.model.load_state_dict(state_dict)
 
     def set_color(self, new_color):
-        global color
-        color = new_color
+        self.color = new_color
+
 
 
     # Returns a numpy array which contains all possible moves
     # Array is in best to worst order (best move is at index 0)
     # A moves are single integers like '288' not coordinates
-    def infer_distubution(self, game, current_model=model):
+    def infer_distribution(self, game, current_model=None):
+        if current_model is None:
+            current_model = self.model
+
         board = game.numpy()
 
         if game.get_active_player() == stone.WHITE: # Flips white and black stones if its white's turn
@@ -46,41 +55,53 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
     # Returns the model's best predicted move as tuple where index 0 is x and index y is 1
     # Returned move is always legal
-    def infer_best_move(self, game, total_moves=0, current_model=model):
-        move_dist = self.infer_distubution(game, current_model=current_model)
+    def infer_best_move(self, game, total_moves=0, current_model=None):
+        if current_model is None:
+            current_model = self.model
+
+        move_dist = self.infer_distribution(game, current_model=current_model)
         score_estimate = self.estimate_score(game)
 
-        if color == stone.WHITE: # Helps to flip score estimation if model is white
+        if self.color == stone.BLACK: # Helps to flip score estimation if model is black
             score_estimate*=-1
 
         # Causes the model to resign or pass if it is late in the game and the model is losing
-        if score_estimate > 20 and total_moves > 150:
+        if score_estimate > 15 and total_moves > 150:
             return 'resign'
 
-        if score_estimate > 10 and total_moves > 150:
-            return 'pass'
+        #if score_estimate > 10 and total_moves > 150:
+            #return 'pass'
 
         for move in move_dist: # Loops over all move until a legal move is found
             # Translates a move as a single integer to coordinate e.g. 288 becomes x=3, y=15
+            skips=0
             y=int(move/19)
             x = move-(y*19)
-
+            x+=1
+            y+=1
+            if random.randint(1,10) > 8 and skips < 6:
+                skips+=1
+                continue
+            skips=0
             if game.is_legal(x,y):
-                return x, y
+                return int(x), int(y)
 
     def recommend_move(self, game): # Return the move the best model would play
-        return self.infer_best_move(game, current_model=best_model)
+        return self.infer_best_move(game, current_model=self.best_model)
 
     # Returns where to user's move falls in the model's predicted distribution
     # If the user picked what the model thinks is the best move then the play is given rank 0
     def find_rank_in_distribution(self, distribution, move):
-        translated_move = (move[0]*19)+move[1]
+        x,y = move
+        x-=1
+        y-=1
+        translated_move = (y*19)+x
         index = np.where(distribution == translated_move)
 
         if index[0].size == 0: # If move is not in the distribution return the worst possible rating
             return distribution.size - 1
 
-        return index[0]
+        return index[0][0]
 
     # Returns a label for the quality of the user's move
     def rate_move(self, distribution, move):
@@ -94,7 +115,7 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
             return 'Blunder '+str(rank)
 
     def rate_user_move(self, game, move): # Must be called before updating sente with the users move
-        return self.rate_move(self.infer_distubution(game, current_model=best_model), move)
+        return self.rate_move(self.infer_distribution(game, current_model=self.best_model), move)
 
     # Implementation of 'Bouzy's Algorithm' to estimate the score of the game
     # The algorithm was recommended and explained in part by AI

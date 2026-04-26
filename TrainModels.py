@@ -6,7 +6,7 @@ from GoPolicyNet import GoPolicyResNet
 
 total_frames = 1000000 # total frames to use for training/testing
 test_frames = 10000 # frames to hold out of training for test purposes
-training_data_path ='TrainingData-18k'
+training_data_path = 'TrainingData-18k'
 
 X = np.memmap(rf'{training_data_path}\X_file.npy', dtype=np.uint8, mode='r+', shape=(total_frames, 19, 19, 4))
 y = np.memmap(rf'{training_data_path}\y_file.npy', dtype=np.uint16, mode='r+', shape=(total_frames,))
