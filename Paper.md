@@ -5,7 +5,7 @@ Our system was designed with the primary motivation of providing users with a hu
 ## Go Game Engine - complete
 Our system presents a fully functional game of Go to the user using the Sente library as the primary engine to run the game of Go on the back end. Our system offers an interactive UI to allow human users to smoothly input moves and see model responses displayed on the game board.
 ## Neural Network AI - complete
-Our software presents three convolutional neural networks which rrained on one million board states from their respective skill categories. The following data conveys the accuracy score each model achieved on a 10,000-board state test set which models were not trained on. The data effectively conveys how statistically human each model plays the game of Go.
+Our software presents three convolutional neural networks which trained on one million board states from their respective skill categories. The following data conveys the accuracy score each model achieved on a 10,000-board state test set which models were not trained on. The data effectively conveys how statistically human each model plays the game of Go.
 | **Model Training data**| **Top-1 accuracy**| **Top-5 accuracy**| **Training data skill bracket**|
 |----------------------------|---------------------|-------------------------------------------------|----|
 | Hard Model| 25%|50% |8d |
