@@ -203,7 +203,10 @@ x = np.memmap(x_file, dtype=np.uint8, mode='r+', shape=(num_frames, 19, 19, 4))
 y = np.memmap(y_file, dtype=np.uint16, mode='r+', shape=(num_frames,))
 ```
 Here x and y are redefined into memmep arrays which are capable of holding more data than can fit in system RAM. This is done to ensure that training data is accessible even if the file size is larger than system memory allows.
-
+```python
+total_errors=0
+total_frames=0
+```
 Not every game in our data set is consistent with Sente’s internal rules and as a result will throw an error when attempting to convert into a numpy array. The total_errors variable is used to track the total number of such errors so that data loss can be measured. The total_frames variable is used to track the total amount of board states/moves that have been converted as the function iterates over the directory. 
 ```python
 for index, file_path in enumerate(SGF_directory_path.iterdir()):
