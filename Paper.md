@@ -85,6 +85,7 @@ The breakdown of the skill levels is as follows:
 |Hard Model 8d|8d|This rank is just before professional level and only achieved after years of experience|
 
 Unfortunately, the public repository we used did not have enough games at the professional level to serve as sufficient training data, so we used next best rank ‘dan’ as a replacement. Altogether our models trained on approximately 5000 games in their respective categories.
+
 # exemplary pieces of code
 # Jonah Benton - convertSGFtoNumpy.py
 The section of code convertSGFtoNumpy.py is the primary element of the Data Pipeline and is responsible for converting raw SGF files to numpy data frames which can serve as X and y data for model training. Because our models attempt to predict what a human would play for a given board state the X data represents the state of the board and the y data represents the move a real human played on that state. 
@@ -251,7 +252,7 @@ This code is tasked with periodically printing updates to the console and ending
 
 All put together this code can convert an arbitrary number of SGF files into usable numpy data frames for model training and evaluation.
 # Test Procedures
-Because our AI systems are not deterministic most of our tests revolve around ensuring that the model is producing correctly structured data. This involves things such as ensuring the model is inferring correct rankings of all possible moves, that the code is selecting only legal moves, and labeling user moves appropriately. Following a series of test protocols designed to achieve these aims.
+Because our AI systems are not deterministic most of our tests revolve around ensuring that the model is producing correctly structured data. This involves things such as ensuring the model is inferring correct rankings of all possible moves, that the code is selecting only legal moves, and labeling user moves appropriately. The following is a series of test protocols designed to achieve these aims.
 ## Model Inference
 Because the model needs to output a ranking of moves across the entire board space of 361 possible moves a test can be designed to ensure the model output is appropriately structured. This test protocol ensures that the output distribution of the model is a list of integers 361 indexes in length.
 ## Move Legality
