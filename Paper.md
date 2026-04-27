@@ -13,7 +13,7 @@ Our system was designed with the primary motivation of providing users with a hu
 | Casey | 7 hours | April 20, 2026, 11:00am - 1:00pm; 2:00pm - 4:00pm; 9:00pm - 12:00m | Attempted to do things regarding plugging the AI model into the code and so far nothing is working. I also attempted to add a winnerPage for the end of the game. |
 | Casey | 5 hours | April 24, 2026, 12:30pm - 1:30pm; 8:00pm - 12:00m | After a break I’m trying again and it didn’t work, so instead I’m working on other aspects like creating toggleable features like the move rater/recommenders. I’ve discovered the problem, and it’s because I have a MacBook. |
 | Casey | 4 hours | April 25, 206, 9:00pm - 1:00am | I've gotten the code to work on my machine now and I'm starting to implement end game aspects such as the final results screen. |
-| Casey | 11 hours | April 26, 2026 | Now it’s the final stretch of making sure everything works and everything is implemented such as the toggleable settings. Along with making sure all AI code is flagged as such. |
+| Casey | 11 hours | April 26, 2026, 12:00n-5:00pm; 6:00pm-12:00m | Now it’s the final stretch of making sure everything works and everything is implemented such as the toggleable settings. Along with making sure all AI code is flagged as such. |
 | Casey TOTAL | 55 hours | . | . |
 
 # Requirements
