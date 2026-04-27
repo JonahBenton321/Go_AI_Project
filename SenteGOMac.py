@@ -2,12 +2,12 @@
 # the direct involvement of Google AI.
 # The underlying code was freshly sourced through articles and YouTube tutorials.
 from math import gamma
-
+import random
 import sente
 import tkinter as tk
 from tkinter import simpledialog
 from tkinter import *
-import model_handler as AIHandlerFile
+import model_handler_mac as AIHandlerFile
 black = sente.stone.BLACK
 white = sente.stone.WHITE
 root = tk.Tk()
@@ -128,7 +128,7 @@ class explanationPage:
                                    "- (X,Y) are standard X and inverted Y as shown by the side board grids.\n"
                                    "- 'Best Move' displays what the AI model would play in that position.\n"
                                    , font = "Verdana 13")
-        self.gameExplainer.pack()
+        self.gameExplainer.pack() 
 
 # The code that actually plays the game of GO.
 class GOGame:
@@ -145,8 +145,8 @@ class GOGame:
         elif model18kON:
             self.aihandler = AIHandlerFile.AIHandler("Go_model_18k.pth")
             print("Go_model_18k.pth")
+        self.manual_move_history = [] # AI
         user_color = simpledialog.askstring("Input", "Black(B) or White(W) or Self(S): ")
-        # # AIStrength = simpledialog.askstring("Input", "AI Level (0) (1) or (2)?: ")
         # Starting Game UI State.
         self.topLabel = tk.Label(root, text="GO (THE BOARD GAME)\n", fg = "White", font = "Courier 25")
         self.topLabel.pack()
@@ -163,6 +163,7 @@ class GOGame:
 
         # Due to root.mainloop(), a while loop won't work
         # Thus a 'make move' button was deemed the solution as it allows for n moves.
+        # Since I've hotkeyed 'Enter' to also make a move.
         if user_color.lower() == "b":
             self.root.bind("<Return>", self.makeMoveBlack)
             self.button = tk.Button(root, text='Make Move', width=25, command=self.makeMoveBlack)
@@ -175,10 +176,13 @@ class GOGame:
             self.root.bind("<Return>", self.aiSelfPlay)
             self.button = tk.Button(root, text='Start Sim', width=25, command=self.aiSelfPlay)
             self.button.pack()
+            # In manual testing I found that all models processed the same game every playthrough.
+            # This sets out to bring some form of game variation.
+            self.game.play(random.randint(1, 19),random.randint(1, 19))
+            self.game.play(random.randint(1, 19),random.randint(1, 19))
 
-        # super().__init__('Go_Model_8d.pth')
-
-    def endGame():
+    # Collects necessary results, and opens the results window.
+    def endGame(self):
         global results, whiteScore, blackScore, whiteWon, blackWon
         finalscores = self.game.score()
         results, whiteScore, blackScore  = finalscores.values()
@@ -203,17 +207,18 @@ class GOGame:
             print("Go_model_18k.pth")
 
     # Player and AI Moves in Game
-    # I've realized this serves as a user goes first function, not a hardcoded user is black pieces.
-    def makeMoveBlack(self, event=None): # all changes here must be repeated in the other 'white' move function
+    # I've realized this serves as a user goes second function, not a hardcoded user is black pieces.
+    def makeMoveBlack(self, event=None):
         ### USER TURN
         rateMove = "N/A (Pass)"
 
-        user_input = simpledialog.askstring("Input", f"Move (ie: X,Y) or 'pass' or 'resign': ")
+        user_input = simpledialog.askstring("Input", f"Move (ie: X,Y) or 'pass' or 'resign' or 'switch: ")
         user_input = user_input.replace(" ", "").replace("(", "").replace(")", "")
-        
-        # Specify that user intends to pass.
+
+        #Specify that user intends to pass.
         if user_input == "pass" or user_input == "":
-            game.pss()
+            self.game.play(None)
+            self.manual_move_history.append((None, sente.stone.BLACK)) # AI
         elif user_input == "resign":
             self.game.resign()
             self.endGame()
@@ -223,38 +228,77 @@ class GOGame:
             return
         else: 
             x, y = map(int, user_input.split(','))
-            rateMove = AIHandler.rate_user_move(self, game, (x, y))
-            game.play(x,y)
-        # Update UI with move.
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
-        self.turnIndicator.config(text="\nAI TURN", font = "Verdana 15 bold")
+            self.game.play(x, y) 
+            self.manual_move_history.append((x - 1, y - 1, sente.stone.BLACK)) # AI
+            rateMove = self.aihandler.rate_user_move(self.manual_move_history, (x, y)) # AI
+            
+        self.gameBoard.config(text=str(self.game), font="Courier 20")
+        self.turnIndicator.config(text="\nAI TURN", font="Verdana 15 bold")
+        ### END USER TURN
 
-        if game.is_over():
-            self.endGame()
-            return
+        ### AI TURN (Made by AI for AI)
+        # 1. Ask the model for the best move
+        ai_move = self.aihandler.infer_best_move(self.manual_move_history, self.game)
+        
+        # Check if the AI returned None or a pass string
+        if ai_move is None or isinstance(ai_move, str):
+            print("AI has no valid moves left or decided to pass/resign.")
+            
+            # Fix 1: Push a NATIVE pass directly to the C++ engine
+            # This makes consecutive passes fire Sente's internal win state!
+            self.game.play(None) 
+            
+            # Fix 2: Add None coordinates to tracking to prevent inhomogeneous shape crashes
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((None, None, active_color))
+            
+            # 3. Immediately evaluate if the native passes ended the game
+            if self.game.is_over():
+                print("Game officially over! Sente recognized consecutive passes.")
+                self.endGame()
+                return
+            return 
+            
+        # 4. If it's a valid coordinate, unpack it safely
+        model_x, model_y = ai_move
 
-        ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
-
-        recommendMove = str(AIHandler.recommend_move(self, game))
-        # Update UI with move.
-        self.gameBoard.config(text=str(game), font = "Courier 20")
+        recommendMove = self.aihandler.recommend_move(self.manual_move_history, self.game, exclude_move=(model_x, model_y))
+        if isinstance(recommendMove, tuple):
+            recommend_str = f"({int(recommendMove[0]) + 1}, {int(recommendMove[1]) + 1})"
+        else:
+            recommend_str = str(recommendMove) 
+        
+        # Shift the 0-18 model coordinates to your 1-19 legal range
+        ai_x = int(model_x) + 1
+        ai_y = int(model_y) + 1
+        
+        try:
+            self.game.play(ai_x, ai_y)
+            # Add play to tracker
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((model_x, model_y, active_color))
+            
+        except sente.exceptions.IllegalMoveException:
+            print(f"AI self-play picked occupied spot at {ai_x}, {ai_y}. Passing turn.")
+            self.game.play(None)
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((None, None, active_color))
+        ### END AI TURN
+        self.gameBoard.config(text=str(self.game), font="Courier 20")
+        
         global turnedOnRater
         if turnedOnRater:
             self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
         else:
             pass
+        
         global turnedOnRecommended
         if turnedOnRecommended:
             self.bestMove.config(text="Recommend Move: " + recommend_str, font="Verdana 20 bold")
         else:
             pass
-        self.turnIndicator.config(text="\nYOUR TURN", font = "Verdana 15 bold")
-
-        if game.is_over():
-            self.endGame()
-            return
+        
+        self.turnIndicator.config(text="\nYOUR TURN", font="Verdana 15 bold")
 
     # Player and AI Moves in Game
     # Allow for a single 'buffer' AI move, then switch to makeMoveBlack.
@@ -263,14 +307,55 @@ class GOGame:
     def makeMoveWhite(self, event=None):
         self.root.bind("<Return>", self.makeMoveBlack)
         rateMove = "N/A (Pass)"
+        ### AI TURN (Made by AI for AI)
+        # 1. Ask the model for the best move
+        ai_move = self.aihandler.infer_best_move(self.manual_move_history, self.game)
         
-        ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
+        # Check if the AI returned None or a pass string
+        if ai_move is None or isinstance(ai_move, str):
+            print("AI has no valid moves left or decided to pass/resign.")
+            
+            # Fix 1: Push a NATIVE pass directly to the C++ engine
+            # This makes consecutive passes fire Sente's internal win state!
+            self.game.play(None) 
+            
+            # Fix 2: Add None coordinates to tracking to prevent inhomogeneous shape crashes
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((None, None, active_color))
+            
+            # 3. Immediately evaluate if the native passes ended the game
+            if self.game.is_over():
+                print("Game officially over! Sente recognized consecutive passes.")
+                self.endGame()
+                return
+            return 
+            
+        # 4. If it's a valid coordinate, unpack it safely
+        model_x, model_y = ai_move
 
-        recommendMove = str(AIHandler.recommend_move(self, game))
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        recommendMove = self.aihandler.recommend_move(self.manual_move_history, self.game, exclude_move=(model_x, model_y))
+        if isinstance(recommendMove, tuple):
+            recommend_str = f"({int(recommendMove[0]) + 1}, {int(recommendMove[1]) + 1})"
+        else:
+            recommend_str = str(recommendMove) 
         
+        # Shift the 0-18 model coordinates to your 1-19 legal range
+        ai_x = int(model_x) + 1
+        ai_y = int(model_y) + 1
+        
+        try:
+            self.game.play(ai_x, ai_y)
+            # Add play to tracker
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((model_x, model_y, active_color))
+            
+        except sente.exceptions.IllegalMoveException:
+            print(f"AI self-play picked occupied spot at {ai_x}, {ai_y}. Passing turn.")
+            self.game.play(None)
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((None, None, active_color))
+        ### END AI TURN
+
         global turnedOnRater
         if turnedOnRater:
             self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
@@ -285,25 +370,61 @@ class GOGame:
         
         self.button.config(text='Make Move', command=self.makeMoveBlack)
         self.button.pack()
-        self.turnIndicator.config(text="\nYOUR TURN", font = "Verdana 15 bold")
-
-        if game.is_over():
-            self.endGame()
-            return
+        self.turnIndicator.config(text="\nYOUR TURN", font="Verdana 15 bold")
 
     # Repeatedly calls the AI to make a move
     def aiSelfPlay(self, event=None):
-        ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
+        ### AI TURN (Made by AI for AI)
+        # 1. Ask the model for the best move
+        ai_move = self.aihandler.infer_best_move(self.manual_move_history, self.game)
+        
+        # Check if the AI returned None or a pass string
+        if ai_move is None or isinstance(ai_move, str):
+            print("AI has no valid moves left or decided to pass/resign.")
+            
+            # Fix 1: Push a NATIVE pass directly to the C++ engine
+            # This makes consecutive passes fire Sente's internal win state!
+            self.game.play(None) 
+            
+            # Fix 2: Add None coordinates to tracking to prevent inhomogeneous shape crashes
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((None, None, active_color))
+            
+            # 3. Immediately evaluate if the native passes ended the game
+            if self.game.is_over():
+                print("Game officially over! Sente recognized consecutive passes.")
+                self.endGame()
+                return
+            return 
+            
+        # 4. If it's a valid coordinate, unpack it safely
+        model_x, model_y = ai_move
 
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        recommendMove = self.aihandler.recommend_move(self.manual_move_history, self.game, exclude_move=(model_x, model_y))
+        if isinstance(recommendMove, tuple):
+            recommend_str = f"({int(recommendMove[0]) + 1}, {int(recommendMove[1]) + 1})"
+        else:
+            recommend_str = str(recommendMove) 
+        
+        # Shift the 0-18 model coordinates to your 1-19 legal range
+        ai_x = int(model_x) + 1
+        ai_y = int(model_y) + 1
+        
+        try:
+            self.game.play(ai_x, ai_y)
+            # Add play to tracker
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((model_x, model_y, active_color))
+            
+        except sente.exceptions.IllegalMoveException:
+            print(f"AI self-play picked occupied spot at {ai_x}, {ai_y}. Passing turn.")
+            self.game.play(None)
+            active_color = sente.stone.BLACK if len(self.manual_move_history) % 2 == 0 else sente.stone.WHITE
+            self.manual_move_history.append((None, None, active_color))
+        ### END AI TURN
 
-        ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
-
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        # Update UI with the active board
+        self.gameBoard.config(text=str(self.game), font="Courier 20")
 
 class winnerPage:
     global whiteWon, blackWon, results, whiteScore, blackScore, user_color
@@ -337,8 +458,9 @@ class winnerPage:
         self.blackVictoryWhite.pack()
         self.blackVictoryPlayAgain = tk.Label(root, text="\nTo play again, close the game tabs and select 'Play Game' on the home screen.", font = "Courier 13")
         self.blackVictoryPlayAgain.pack()
+            
         
 if __name__ == '__main__':
     app = SelectionScreen() # This was brought to you by Google AI.
-    root.focus_set() # Allows for hotkeys
-    root.mainloop() # Main loop over entire file.
+    root.focus_set() # Allows for hotkeys.
+    root.mainloop() # Main loop entire file.
