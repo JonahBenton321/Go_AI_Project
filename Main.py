@@ -14,13 +14,10 @@ from model_handler import AIHandler
 # right now main is test ground for ideas like the model playing itself
 
 
-random_dist = np.arange(0, 361, ) # simulates a real distribution by random shuffling values from 1-361
-rng = np.random.default_rng(seed=42)
-rng.shuffle(random_dist)
-print(random_dist[18])
+
 
 game = sente.Game()
-model1 = AIHandler('Go_Model_18k.pth')
+model1 = AIHandler('Go_Model_8d.pth')
 model1.set_color(stone.BLACK)
 model2 = AIHandler('Go_Model_8d.pth')
 total_moves=0

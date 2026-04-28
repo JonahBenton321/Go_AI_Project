@@ -55,7 +55,7 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
     # Returns the model's best predicted move as tuple where index 0 is x and index y is 1
     # Returned move is always legal
-    def infer_best_move(self, game, total_moves=0, current_model=None):
+    def infer_best_move(self, game, total_moves=0, current_model=None, random_skip=True):
         if current_model is None:
             current_model = self.model
 
@@ -66,11 +66,11 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
             score_estimate*=-1
 
         # Causes the model to resign or pass if it is late in the game and the model is losing
-        if score_estimate > 15 and total_moves > 150:
+        if score_estimate > 20 and total_moves > 150:
             return 'resign'
 
-        #if score_estimate > 10 and total_moves > 150:
-            #return 'pass'
+        if score_estimate > 15 and total_moves > 150:
+            return 'pass'
 
         for move in move_dist: # Loops over all move until a legal move is found
             # Translates a move as a single integer to coordinate e.g. 288 becomes x=3, y=15
@@ -79,7 +79,7 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
             x = move-(y*19)
             x+=1
             y+=1
-            if random.randint(1,10) > 8 and skips < 6:
+            if (random.randint(1,10) > 8 and skips < 6) and random_skip:
                 skips+=1
                 continue
             skips=0
@@ -87,7 +87,7 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
                 return int(x), int(y)
 
     def recommend_move(self, game): # Return the move the best model would play
-        return self.infer_best_move(game, current_model=self.best_model)
+        return self.infer_best_move(game, current_model=self.best_model, random_skip=False)
 
     # Returns where to user's move falls in the model's predicted distribution
     # If the user picked what the model thinks is the best move then the play is given rank 0
@@ -149,3 +149,9 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
         black = np.sum(territory_map > 0.2)
         white = np.sum(territory_map < -0.2)
         return black-white
+
+    def estimate_score_both_colors(self, game):
+        territory_map = self.create_score_heat_map(game)
+        black = np.sum(territory_map > 0.2)
+        white = np.sum(territory_map < -0.2)
+        return str(black)+' Estimated', str(white)+' Estimated'

@@ -238,7 +238,7 @@ class GOGame:
 
         ### AI TURN (Made by AI for AI)
         # 1. Ask the model for the best move
-        ai_move = self.aihandler.infer_best_move(self.manual_move_history, self.game)
+        ai_move = self.aihandler.infer_best_move(self.aihandler, self.game)
         
         # Check if the AI returned None or a pass string
         if ai_move is None or isinstance(ai_move, str):
@@ -264,13 +264,13 @@ class GOGame:
 
         recommendMove = self.aihandler.recommend_move(self.manual_move_history, self.game, exclude_move=(model_x, model_y))
         if isinstance(recommendMove, tuple):
-            recommend_str = f"({int(recommendMove[0]) + 1}, {int(recommendMove[1]) + 1})"
+            recommend_str = f"({int(recommendMove[0])}, {int(recommendMove[1])})"
         else:
             recommend_str = str(recommendMove) 
         
         # Shift the 0-18 model coordinates to your 1-19 legal range
-        ai_x = int(model_x) + 1
-        ai_y = int(model_y) + 1
+        ai_x = int(model_x)
+        ai_y = int(model_y)
         
         try:
             self.game.play(ai_x, ai_y)
@@ -335,13 +335,13 @@ class GOGame:
 
         recommendMove = self.aihandler.recommend_move(self.manual_move_history, self.game, exclude_move=(model_x, model_y))
         if isinstance(recommendMove, tuple):
-            recommend_str = f"({int(recommendMove[0]) + 1}, {int(recommendMove[1]) + 1})"
+            recommend_str = f"({int(recommendMove[0])}, {int(recommendMove[1])})"
         else:
             recommend_str = str(recommendMove) 
         
         # Shift the 0-18 model coordinates to your 1-19 legal range
-        ai_x = int(model_x) + 1
-        ai_y = int(model_y) + 1
+        ai_x = int(model_x)
+        ai_y = int(model_y)
         
         try:
             self.game.play(ai_x, ai_y)
@@ -402,13 +402,13 @@ class GOGame:
 
         recommendMove = self.aihandler.recommend_move(self.manual_move_history, self.game, exclude_move=(model_x, model_y))
         if isinstance(recommendMove, tuple):
-            recommend_str = f"({int(recommendMove[0]) + 1}, {int(recommendMove[1]) + 1})"
+            recommend_str = f"({int(recommendMove[0])}, {int(recommendMove[1])})"
         else:
             recommend_str = str(recommendMove) 
         
         # Shift the 0-18 model coordinates to your 1-19 legal range
-        ai_x = int(model_x) + 1
-        ai_y = int(model_y) + 1
+        ai_x = int(model_x)
+        ai_y = int(model_y)
         
         try:
             self.game.play(ai_x, ai_y)

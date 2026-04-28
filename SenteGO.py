@@ -1,20 +1,19 @@
 # NOTICE: The was restructured into the __init__() and other def X() style under classes through
 # the direct involvement of Google AI.
 # The underlying code was freshly sourced through articles and YouTube tutorials.
-from math import gamma
 
 import sente
 import tkinter as tk
 from tkinter import simpledialog
-from tkinter import *
-import model_handler as AIHandlerFile
+from model_handler import AIHandler
+
 black = sente.stone.BLACK
 white = sente.stone.WHITE
 root = tk.Tk()
 root.title('CS331 GO Project')
-turnedOnRater = True
-turnedOnRecommended = True
-model8d = True
+turnedOnRater = False
+turnedOnRecommended = False
+model8dON = True
 
 # The Starting screen.
 class SelectionScreen:
@@ -136,14 +135,15 @@ class GOGame:
         global user_color
         self.root = root
         self.game = sente.Game()
+        model_path = ''
         if model8dON:
-            self.aihandler = AIHandlerFile.AIHandler("Go_model_8d.pth")
+            model_path = "Go_model_8d.pth"
             print("Go_model_8d.pth")
         elif model1kON:
-            self.aihandler = AIHandlerFile.AIHandler("Go_model_1k.pth")
+            model_path = "Go_model_1k.pth"
             print("Go_model_1k.pth")
         elif model18kON:
-            self.aihandler = AIHandlerFile.AIHandler("Go_model_18k.pth")
+            model_path = "Go_model_18k.pth"
             print("Go_model_18k.pth")
         user_color = simpledialog.askstring("Input", "Black(B) or White(W) or Self(S): ")
         # # AIStrength = simpledialog.askstring("Input", "AI Level (0) (1) or (2)?: ")
@@ -160,6 +160,8 @@ class GOGame:
         self.bestMove.pack()
         self.turnIndicator = tk.Label(root, text="\nYOUR TURN", font = "Verdana 15 bold")
         self.turnIndicator.pack()
+
+        self.model = AIHandler(model_path)
 
         # Due to root.mainloop(), a while loop won't work
         # Thus a 'make move' button was deemed the solution as it allows for n moves.
@@ -178,12 +180,19 @@ class GOGame:
 
         # super().__init__('Go_Model_8d.pth')
 
-    def endGame():
+    def endGame(self):
+
+        final_scores =  self.game.score().values()
         global results, whiteScore, blackScore, whiteWon, blackWon
-        finalscores = self.game.score()
-        results, whiteScore, blackScore  = finalscores.values()
+
+        whiteScore, blackScore, results  = final_scores
+
         whiteWon = 'W' in results
         blackWon = 'B' in results
+
+        if results in ['B+R', 'W+R']:
+            blackScore, whiteScore, = self.model.estimate_score_both_colors(self.game)
+            results = str(self.model.estimate_score(self.game))+' Estimated'
         
         new_window = tk.Toplevel(root)
         winnerPage(new_window)
@@ -193,13 +202,13 @@ class GOGame:
         model8dON = False; model1kON = False; model18kON = False
         userModelSelect = simpledialog.askstring("Input", "(1) model_8d | (2) model_1k | (3) model_18k: ")
         if userModelSelect == "1":
-            self.aihandler = AIHandlerFile.AIHandler("Go_model_8d.pth")
+            self.model.set_main_model("Go_model_8d.pth")
             print("Go_model_8d.pth")
         elif userModelSelect == "2":
-            self.aihandler = AIHandlerFile.AIHandler("Go_model_1k.pth")
+            self.model.set_main_model("Go_model_1k.pth")
             print("Go_model_1k.pth")
         elif userModelSelect == "3":
-            self.aihandler = AIHandlerFile.AIHandler("Go_model_18k.pth")
+            self.model.set_main_model("Go_model_18k.pth")
             print("Go_model_18k.pth")
 
     # Player and AI Moves in Game
@@ -213,7 +222,7 @@ class GOGame:
         
         # Specify that user intends to pass.
         if user_input == "pass" or user_input == "":
-            game.pss()
+            self.game.pss()
         elif user_input == "resign":
             self.game.resign()
             self.endGame()
@@ -223,8 +232,8 @@ class GOGame:
             return
         else: 
             x, y = map(int, user_input.split(','))
-            rateMove = AIHandler.rate_user_move(self, game, (x, y))
-            game.play(x,y)
+            rateMove = self.model.rate_user_move(self.game, (x, y))
+            self.game.play(x,y)
         # Update UI with move.
         self.gameBoard.config(text=str(self.game), font = "Courier 20")
         self.turnIndicator.config(text="\nAI TURN", font = "Verdana 15 bold")
@@ -234,12 +243,12 @@ class GOGame:
             return
 
         ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
+        model_x, model_y = self.model.infer_best_move(self.game)
+        self.game.play(model_x, model_y)
 
-        recommendMove = str(AIHandler.recommend_move(self, game))
+        recommendMove = str(self.model.recommend_move(self.game))
         # Update UI with move.
-        self.gameBoard.config(text=str(game), font = "Courier 20")
+        self.gameBoard.config(text=str(self.game), font = "Courier 20")
         global turnedOnRater
         if turnedOnRater:
             self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
@@ -247,12 +256,12 @@ class GOGame:
             pass
         global turnedOnRecommended
         if turnedOnRecommended:
-            self.bestMove.config(text="Recommend Move: " + recommend_str, font="Verdana 20 bold")
+            self.bestMove.config(text="Recommend Move: " + recommendMove, font="Verdana 20 bold")
         else:
             pass
         self.turnIndicator.config(text="\nYOUR TURN", font = "Verdana 15 bold")
 
-        if game.is_over():
+        if self.game.is_over():
             self.endGame()
             return
 
@@ -265,45 +274,58 @@ class GOGame:
         rateMove = "N/A (Pass)"
         
         ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
+        model_x, model_y = self.model.infer_best_move(self.game)
+        self.game.play(model_x, model_y)
 
-        recommendMove = str(AIHandler.recommend_move(self, game))
+        recommendMove = str(self.model.recommend_move(self.game))
         self.gameBoard.config(text=str(self.game), font = "Courier 20")
-        
+        self.root.update()
+
         global turnedOnRater
         if turnedOnRater:
             self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
         else:
             pass
-        
+
         global turnedOnRecommended
         if turnedOnRecommended:
-            self.bestMove.config(text="Recommend Move: " + recommend_str, font="Verdana 20 bold")
+            self.bestMove.config(text="Recommend Move: " + recommendMove, font="Verdana 20 bold")
         else:
             pass
-        
+
         self.button.config(text='Make Move', command=self.makeMoveBlack)
         self.button.pack()
         self.turnIndicator.config(text="\nYOUR TURN", font = "Verdana 15 bold")
 
-        if game.is_over():
+        if self.game.is_over():
             self.endGame()
             return
 
     # Repeatedly calls the AI to make a move
-    def aiSelfPlay(self, event=None):
+    def aiSelfPlay(self, event=None, total_moves=0):
         ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
+
+        if total_moves % 2 == 0:
+            self.model.set_color(sente.BLACK)
+        else:
+            self.model.set_color(sente.WHITE)
+
+        move = self.model.infer_best_move(self.game, total_moves=total_moves)
+
+        if move == 'resign' or move == 'pass':
+            self.game.resign()
+        else:
+            total_moves+=1
+            x, y = move
+            self.game.play(x, y)
 
         self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        self.root.update()
 
-        ### AI TURN
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
-
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        if not self.game.is_over():
+            self.root.master.after(10, self.aiSelfPlay(total_moves=total_moves))
+        else:
+            self.endGame()
 
 class winnerPage:
     global whiteWon, blackWon, results, whiteScore, blackScore, user_color
@@ -329,7 +351,7 @@ class winnerPage:
             self.whiteVictory.pack()
 
         # General stats to print in all cases.
-        self.blackVictoryMargin = tk.Label(root, text="FINAL MARGIN: " + results, font = "Courier 20")
+        self.blackVictoryMargin = tk.Label(root, text="FINAL MARGIN: " + str(results), font = "Courier 20")
         self.blackVictoryMargin.pack()
         self.blackVictoryBlack = tk.Label(root, text="\nBLACK SCORE: " + str(blackScore), font = "Courier 20")
         self.blackVictoryBlack.pack()
