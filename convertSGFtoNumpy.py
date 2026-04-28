@@ -4,7 +4,7 @@ import sente
 from sente import sgf, stone
 
 # Directory of SGF data and training data
-SGF_directory_path = Path(r'C:\Users\Jonah Benton\Downloads\18k2\18k')
+SGF_directory_path = Path(r'C:\Users\data_location')
 training_data_path = Path(r'TrainingData-18k')
 # Number of board states to convert to training data
 num_frames = 1001000
