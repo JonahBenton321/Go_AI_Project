@@ -15,17 +15,17 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
     def __init__(self, model_path,):
         self.model = GoPolicyResNet()
-        state_dict = torch.load(model_path, weights_only=True)
+        state_dict = torch.load(model_path, weights_only=True, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
 
         self.best_model = GoPolicyResNet()
-        state_dict = torch.load('Go_model_8d.pth', weights_only=True) # This is the model trained on the highest skill level
+        state_dict = torch.load('Go_model_8d.pth', weights_only=True, map_location=torch.device('cpu')) # This is the model trained on the highest skill level
         self.best_model.load_state_dict(state_dict)
 
         self.color = sente.WHITE  # default to white
 
     def set_main_model(self, model_name): # Allows switching models at any point
-        state_dict = torch.load(model_name, weights_only=True)
+        state_dict = torch.load(model_name, weights_only=True, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
 
     def set_color(self, new_color):

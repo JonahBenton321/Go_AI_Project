@@ -18,9 +18,9 @@ model8dON = True
 # The Starting screen.
 class SelectionScreen:
     # Starting Game UI State.
-    topLabel = tk.Label(root, text="\n\nGO", fg = "White", font = "Courier 35")
+    topLabel = tk.Label(root, text="\n\nGO", fg = "black", font = "Courier 35")
     topLabel.pack()
-    topLabelParens = tk.Label(root, text="(THE BOARD GAME)\n", fg = "White", font = "Courier 10")
+    topLabelParens = tk.Label(root, text="(THE BOARD GAME)\n", fg = "black", font = "Courier 10")
     topLabelParens.pack()
     turnIndicator = tk.Label(root, text="\nSTART\n", font = "Verdana 15 bold")
     turnIndicator.pack()
@@ -49,21 +49,21 @@ class settingsPage:
         radioVar = tk.StringVar()
         radioVar1 = tk.StringVar()
         radioVar2 = tk.StringVar()
-        self.topLabel = tk.Label(root, text="SETTINGS\n", fg = "White", font = "Courier 25")
+        self.topLabel = tk.Label(root, text="SETTINGS\n", fg = "black", font = "Courier 25")
         self.topLabel.pack()
         
         moveRaterON = tk.Radiobutton(root, text = "Turn ON Move Rater", value = "moveRaterON", variable = radioVar, command = self.turnOnRater)
         moveRaterON.pack()
         moveRaterOFF = tk.Radiobutton(root, text = "Turn OFF Move Rater", value = "moveRaterOFF", variable = radioVar, command = self.turnOffRater)
         moveRaterOFF.pack()
-        self.breaker = tk.Label(root, text="- - - - - - - - - - - -", fg = "White", font = "Courier 25")
+        self.breaker = tk.Label(root, text="- - - - - - - - - - - -", fg = "black", font = "Courier 25")
         self.breaker.pack()
 
         recBestON = tk.Radiobutton(root, text = "Turn ON Move Recommendations", value = "recBestON", variable = radioVar1, command = self.turnOnRecBest)
         recBestON.pack()
         recBestOFF = tk.Radiobutton(root, text = "Turn OFF Move Recommendations", value = "recBestOFF", variable = radioVar1, command = self.turnOffRecBest)
         recBestOFF.pack()
-        self.breaker2 = tk.Label(root, text="- - - - - - - - - - - -", fg = "White", font = "Courier 25")
+        self.breaker2 = tk.Label(root, text="- - - - - - - - - - - -", fg = "Black", font = "Courier 25")
         self.breaker2.pack()
 
         model8dON = tk.Radiobutton(root, text = "Turn ON MODEL 8d", value = "model8dON", variable = radioVar2, command = self.turnOnModel8d)
@@ -107,7 +107,7 @@ class settingsPage:
 # The HOW TO PLAY section.
 class explanationPage:
     def __init__(self, root):
-        self.topLabel = tk.Label(root, text="HOW TO PLAY\n", fg = "White", font = "Courier 25")
+        self.topLabel = tk.Label(root, text="HOW TO PLAY\n", fg = "black", font = "Courier 25")
         self.topLabel.pack()
         
         self.howToPlay = tk.Label(root, text="\nGO is a strategy boardgame where:", font = "Verdana 15 bold")
@@ -134,6 +134,8 @@ class GOGame:
     def __init__(self, root):
         global user_color
         self.root = root
+
+        #self.root.geometry('100x100')
         self.game = sente.Game()
         model_path = ''
         if model8dON:
@@ -148,11 +150,11 @@ class GOGame:
         user_color = simpledialog.askstring("Input", "Black(B) or White(W) or Self(S): ")
         # # AIStrength = simpledialog.askstring("Input", "AI Level (0) (1) or (2)?: ")
         # Starting Game UI State.
-        self.topLabel = tk.Label(root, text="GO (THE BOARD GAME)\n", fg = "White", font = "Courier 25")
+        self.topLabel = tk.Label(root, text="GO (THE BOARD GAME)\n", fg = "Black", font = "Courier 25")
         self.topLabel.pack()
-        self.gameBoard = tk.Label(root, text=str(game), font = "Courier 20")
+        self.gameBoard = tk.Label(root, text=str(game), font = "Courier 10")
         self.gameBoard.pack()
-        self.gameCordKey = tk.Label(root, text="    1  2  3   4  5  6  7  8  9  10 11 12 13  14 15 16 17 18 19", fg="White", font = "Courier 19")
+        self.gameCordKey = tk.Label(root, text="    1  2  3   4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19", fg="Black", font = "Courier 10")
         self.gameCordKey.pack()
         self.moveRating = tk.Label(root, text="Previous Move Rating: (0.XXX)", fg = "White", font = "Verdana 15 bold")
         self.moveRating.pack()
@@ -235,7 +237,7 @@ class GOGame:
             rateMove = self.model.rate_user_move(self.game, (x, y))
             self.game.play(x,y)
         # Update UI with move.
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        self.gameBoard.config(text=str(self.game), font = "Courier 10")
         self.turnIndicator.config(text="\nAI TURN", font = "Verdana 15 bold")
 
         if game.is_over():
@@ -248,7 +250,7 @@ class GOGame:
 
         recommendMove = str(self.model.recommend_move(self.game))
         # Update UI with move.
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        self.gameBoard.config(text=str(self.game), font = "Courier 10")
         global turnedOnRater
         if turnedOnRater:
             self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
@@ -278,7 +280,7 @@ class GOGame:
         self.game.play(model_x, model_y)
 
         recommendMove = str(self.model.recommend_move(self.game))
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        self.gameBoard.config(text=str(self.game), font = "Courier 10")
         self.root.update()
 
         global turnedOnRater
@@ -319,11 +321,11 @@ class GOGame:
             x, y = move
             self.game.play(x, y)
 
-        self.gameBoard.config(text=str(self.game), font = "Courier 20")
+        self.gameBoard.config(text=str(self.game), font = "Courier 10")
         self.root.update()
 
         if not self.game.is_over():
-            self.root.master.after(10, self.aiSelfPlay(total_moves=total_moves))
+            self.root.master.after(1, self.aiSelfPlay(total_moves=total_moves))
         else:
             self.endGame()
 
