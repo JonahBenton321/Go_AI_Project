@@ -156,9 +156,9 @@ class GOGame:
         self.gameBoard.pack()
         self.gameCordKey = tk.Label(root, text="    1  2  3   4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19", fg="Black", font = "Courier 10")
         self.gameCordKey.pack()
-        self.moveRating = tk.Label(root, text="Previous Move Rating: (0.XXX)", fg = "White", font = "Verdana 15 bold")
+        self.moveRating = tk.Label(root, text="Previous Move Rating: (0.XXX)", fg = "Black", font = "Verdana 15 bold")
         self.moveRating.pack()
-        self.bestMove = tk.Label(root, text="Best Move: (X,Y)\n", fg = "White", font = "Verdana 15 bold")
+        self.bestMove = tk.Label(root, text="Best Move: (X,Y)\n", fg = "Black", font = "Verdana 15 bold")
         self.bestMove.pack()
         self.turnIndicator = tk.Label(root, text="\nYOUR TURN", font = "Verdana 15 bold")
         self.turnIndicator.pack()
@@ -253,12 +253,12 @@ class GOGame:
         self.gameBoard.config(text=str(self.game), font = "Courier 10")
         global turnedOnRater
         if turnedOnRater:
-            self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
+            self.moveRating.config(text="User Move Rating: " + rateMove, fg="Black", font="Verdana 15 bold")
         else:
             pass
         global turnedOnRecommended
         if turnedOnRecommended:
-            self.bestMove.config(text="Recommend Move: " + recommendMove, font="Verdana 20 bold")
+            self.bestMove.config(text="Recommend Move: " + recommendMove, fg="Black", font="Verdana 20 bold")
         else:
             pass
         self.turnIndicator.config(text="\nYOUR TURN", font = "Verdana 15 bold")
@@ -285,13 +285,13 @@ class GOGame:
 
         global turnedOnRater
         if turnedOnRater:
-            self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
+            self.moveRating.config(text="User Move Rating: " + rateMove, fg="Black", font="Verdana 15 bold")
         else:
             pass
 
         global turnedOnRecommended
         if turnedOnRecommended:
-            self.bestMove.config(text="Recommend Move: " + recommendMove, font="Verdana 20 bold")
+            self.bestMove.config(text="Recommend Move: " + recommendMove, fg="Black", font="Verdana 20 bold")
         else:
             pass
 
