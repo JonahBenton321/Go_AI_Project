@@ -12,8 +12,8 @@ Our system was designed with the primary motivation of providing users with a hu
 | Casey | 5.5 hours | April 19, 2026, 2:30pm - 5:00pm; 10:00pm - 1:00am | Got all the menus sorted out and working along with setting up for what should hopefully be an easy plug-n-play process for the AI models. |
 | Casey | 7 hours | April 20, 2026, 11:00am - 1:00pm; 2:00pm - 4:00pm; 9:00pm - 12:00m | Attempted to do things regarding plugging the AI model into the code and so far nothing is working. I also attempted to add a winnerPage for the end of the game. |
 | Casey | 5 hours | April 24, 2026, 12:30pm - 1:30pm; 8:00pm - 12:00m | After a break I’m trying again and it didn’t work, so instead I’m working on other aspects like creating toggleable features like the move rater/recommenders. I’ve discovered the problem, and it’s because I have a MacBook. |
-| Casey | 4 hours | April 25, 206, 9:00pm - 1:00am | AI is helping to bridge the gap in my technological impairment of having a MacBook machine by implementing the AI models. |
-| Casey | 11 hours | April 26, 2026 | Thanks to Google AI, I can now run and test the AI models on my laptop because it works the code for their implementation. Now it’s the final stretch of making sure everything works and everything is implemented. Along with making sure all AI code is flagged as such. |
+| Casey | 4 hours | April 25, 206, 9:00pm - 1:00am | I've gotten the code to work on my machine now and I'm starting to implement end game aspects such as the final results screen. |
+| Casey | 11 hours | April 26, 2026, 12:00n-5:00pm; 6:00pm-12:00m | Now it’s the final stretch of making sure everything works and everything is implemented such as the toggleable settings. Along with making sure all AI code is flagged as such. |
 | Casey TOTAL | 55 hours | . | . |
 
 # Requirements
@@ -276,10 +276,7 @@ This code is tasked with periodically printing updates to the console and ending
 All put together this code can convert an arbitrary number of SGF files into usable numpy data frames for model training and evaluation.
 
 # Casey Perlinger-Jett - SenteGO.py
-The section of code SenteGO.py is the main file for all UI elements of the project. First and foremost, SenteGO and SenteGOMac are, by all performance measures, the same code. However, due to the magic of:
-![Alt text](Images/pyTorchFail.png)
-Because of this, I attempted to modify the code myself to accommodate for my macbook, and when that failed, because the map_location fix it shows is not the solution, I had AI rewrite model_handler.py to give me model_handler_mac.py so that I could actually have a chance to run and test the code on my device. With that, though, it gave to SenteGO.py compatible with model_handler.py and SenteGOMac.py compatible with model_handler_mac.py. I can confirm the menuing of SenteGO works, the actually gameplay against the AI isn’t something my machine allows for me to see.
-With that out of the way, from here on out I’ll be referring to both files as a combined SenteGO.py for simplicity of writing. The file itself contains all code for menuing, UI, and the user-side of playing the game of GO, with the occasional AI Model call too.
+The section of code SenteGO.py is the main file for all UI elements of the project. The file itself contains all code for menuing, UI, and the user-side of playing the game of GO, with the occasional AI Model call too. This is the front-end of the GO project powered by python tkinter.
 ```
 # NOTICE: The was restructured into the __init__() and other def X() style under classes through
 # the direct involvement of Google AI.
@@ -372,7 +369,7 @@ Now this is the core of the game: the user’s turn in the game of GO. Breaking 
         user_input = simpledialog.askstring("Input", f"Move (ie: X,Y) or 'pass' or 'resign' or 'switch: ")
         user_input = user_input.replace(" ", "").replace("(", "").replace(")", "")
 ```
-This prompts, receives, and cleans the user’s input. Using the built-in simpledialog prompting, and then removing any spaces or parentheses the user might’ve put into their input (i.e. (4, 4) → 4,4) This is needed for the sake of reading the data into a playable move later on, and for the sake of having some leeway in the user input so that it's not so strict.
+This prompts, receives, and cleans the user’s input. Using the built-in simpledialog prompting, and then removing any spaces or parentheses the user might’ve put into their input (i.e. '( 4, 4)' → '4,4') This is needed for the sake of reading the data into a playable move later on, and for the sake of having some leeway in the user input so that it's not so strict.
 ```
         if user_input == "pass" or user_input == "":
             game.pss()
@@ -388,15 +385,8 @@ This prompts, receives, and cleans the user’s input. Using the built-in simple
             rateMove = AIHandler.rate_user_move(self, game, (x, y))
             game.play(x,y)
 ```
-Reading the input now we check for three special cases before defaulting to mapping the cleaned input into an x and y for a playable move. Which is also run through the AIHandler file for the move to be rated and then have that rating stored in this file for it to be printed out if the setting is selected. PASS or [blankInput] voluntary skips your turn. RESIGN which immediately ends the game. Along with SWITCH which then prompts you to select one of the three models to switch to mid-game. 
-Beyond that it updates the displayed text on the screen and checks if the game has concluded or not using a built-in Sente function. Which doesn’t have anything all that complex to it.
-```
-        model_x, model_y = AIHandler.infer_best_move(self, game)
-        game.play(model_x, model_y)
-        recommendMove = str(AIHandler.recommend_move(self, game))
-```
-Above is the AI model code for SenteGO.py, it’s straightforward. It calls the function infer_best_move() which returns x,y values that are then split into the two variables which are then immediately fed into the AI’s move. Afterwards, recommend_move is called to determine what move the model would choose in response to it’s move and then store it to present it to the user.
-It is here where I will state the AI turn in the SenteGOMac is majority AI-generated with Google AI in its final form. It was a slog trying to get it to work, and so I decided, since I was already well over the fifteen-hour minimum, I might as well see what it can do by directly adding a major portion to the codebase.
+Reading the input now we check for three special cases before defaulting to mapping the cleaned input into an x and y for a playable move. Which is also run through the AIHandler file for the move to be rated and then have that rating stored in this file for it to be printed out if the setting is selected. PASS or "" voluntary skips your turn. RESIGN which immediately ends the game. Along with SWITCH which then prompts you to select one of the three models to switch to mid-game. 
+Beyond that it updates the displayed text on the screen and checks if the game has concluded or not using a built-in Sente function. Which doesn’t have anything all that complex to it. Except for the self.endGame() call. Within that statement it is immediately followed by a return which is required to exist otherwise the statement wouldn't work because the mainloop() iterating over everything would just pass on by it. 
 ```
     def makeMoveWhite(self, event=None):
         self.root.bind("<Return>", self.makeMoveBlack)
@@ -464,6 +454,16 @@ Third Failure:
 ![Alt text](Images/fail_3.png)
 
 This test failed because the array of integers that needed to be outputted was wrapped in another object array which caused its length to be interpreted as one rather than 361. Code was refactored to incorporate a numpy conversion which unwrapped the object and successfully returned the array of 361 integers passing the test.
+## Test Driven Development 2
+The purpose of this test is to ensure that the game opens the ending results window when the game comes to an end. To test this I used the AI self play to quickly iterate through a test game. The test began with its first failure of what happens when the AI runs out of moves. At the time it turns out the code just creashed.
+![Alt text](Refactoring_endGame()_1.png)
+So the code needed a few cases patched up, which is what happened afterwards. However then a new problem arised.
+![Alt text](Refactoring_endGame()_2.png)
+The issue is that in the game of GO when both players pass their turn consecutively, the game ends, however, as we can see that wasn't the case here. Instead it just continued on forever.
+![Alt text](Refactoring_endGame()_3.png)
+Here on the third, documented, iteration of the testing, we were able to get it to recognize a statement within the function upon the game ending, however, it was not able to call a function outside of the iteratng selfplay function which I found very odd.
+![Alt text](Refactoring_endGame()_4.png)
+In this case it there was a slight bit of human error. 'self.endGame()' is the working code, however, it requires a 'return' after the function call otherwise it can't escape the playing loop the game was currently in. Thus after adding a 'return' to the end of the endGame statement it was able to properly load the results screen, passing our test.
 
 ## References
 During development we used ChatGPT and Google Gemini mainly as knowledge tools to help with using frameworks like NumPy, Sente, and Pytorch. Due to unfamiliarity with Pytorch Gemini was used to generate code which creates and evaluates AI models although the code was altered for our purposes. A copy of all AI generated code can be found in the AI_Generated.py file or it can be found documented in the project code itself.
@@ -476,7 +476,7 @@ GeeksforGeeks. (2025, July 14). Python tkinter tutorial. https://www.geeksforgee
 GeeksforGeeks was accessed many times to learn how to utilize tkinter and its built-in functions.
 
 Klein, B. (2022, February 1). Tkinter - the python interface for Tk. Tkinter - the python interface for Tk | Tkinter. https://python-course.eu/tkinter/
-Python documents and tutorials were also accessed to understand tkinter for this project.
+Python documents and tutorials were also accessed to learn and understand tkinter for this project.
 
 
 
