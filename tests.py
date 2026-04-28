@@ -3,7 +3,7 @@ import numpy as np
 from sente import sgf
 from model_handler import AIHandler
 
-game = sgf.load(r'C:\location of SGF files',ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True) # Random game to test on
+game = sgf.load(r'TestGame.sgf',ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True) # Random game to test on
 sequence = game.get_default_sequence()
 
 model = AIHandler('Go_Model_8d.pth')
