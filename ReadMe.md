@@ -129,18 +129,22 @@ The section of code convertSGFtoNumpy.py is the primary element of the Data Pipe
 The following function in convertSGFtoNumpy.py is responsible for converting an entire SGF file into X data.
 
 ```python
-def convert_move_to_numpy(game):
+def convert_board_state_to_numpy(game):
     game.advance_to_root()
     sequence = game.get_default_sequence()
-    all_moves = np.zeros((len(sequence)),dtype=np.uint16)
+    all_board_states = np.zeros((len(sequence), 19, 19, 4), dtype=np.uint8)
+    all_board_states[0, :, :,2]=1 # Fills the first frame with the values found in an empty board
 
-    for i in range(len(sequence)):
-        x = sequence[i].get_x()
-        y = sequence[i].get_y()
+    for i in range(len(sequence)-1):
         game.play(sequence[i])
-        all_moves[i]=(y*19)+x
+        board = game.numpy()
 
-    return all_moves
+        if game.get_active_player() == stone.WHITE: # Flips white and black stones if its white's turn
+            board = np.stack([board[..., 1], board[..., 0], board[..., 2], board[..., 3]], axis=2)
+
+        all_board_states[i+1] = board # Adds board array to i+1 because the first index is an empty board
+
+    return all_board_states
 ```
 The game object passed into this function is used to represent and store an entire game of Go from an SGF file; how this object is created will be discussed later. 
 ```python
