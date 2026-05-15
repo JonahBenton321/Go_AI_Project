@@ -11,8 +11,10 @@ num_frames = 1001000
 
 training_data_path.mkdir(exist_ok=True)
 
-# Converts all moves in a game to target data by converting human move to a single number representing the move location
 def convert_move_to_numpy(game):
+    """
+    # Converts all moves in a game to target data by converting human move to a single number representing the move location
+    """
     game.advance_to_root()
     sequence = game.get_default_sequence()
     all_moves = np.zeros((len(sequence)),dtype=np.uint16)
@@ -25,8 +27,11 @@ def convert_move_to_numpy(game):
 
     return all_moves
 
-# Converts all moves in a game to Input data by using Sente's to_numpy function
+
 def convert_board_state_to_numpy(game):
+    """
+    Converts all moves in a game to input data by using Sente's to_numpy function
+    """
     game.advance_to_root()
     sequence = game.get_default_sequence()
     all_board_states = np.zeros((len(sequence), 19, 19, 4), dtype=np.uint8)
@@ -43,8 +48,10 @@ def convert_board_state_to_numpy(game):
 
     return all_board_states
 
-# convert a set number of board states to training data
 def convert_all_games():
+    """
+    convert a set number of board states to training data
+    """
 
     x_file = rf'{training_data_path}\X_file.npy'
     y_file = rf'{training_data_path}\y_file.npy'
@@ -61,9 +68,7 @@ def convert_all_games():
     total_errors=0
     total_frames=0
 
-
-    for index, file_path in enumerate(SGF_directory_path.iterdir()):
-        # Loads one game from the SGF directory
+    for index, file_path in enumerate(SGF_directory_path.iterdir()): # Loads one game from the SGF directory
         try:
             game = sgf.load(str(file_path), ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True)
             sequence = game.get_default_sequence()

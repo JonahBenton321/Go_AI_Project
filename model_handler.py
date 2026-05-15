@@ -27,12 +27,12 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
     def set_color(self, new_color):
         self.color = new_color
 
-
-
-    # Returns a numpy array which contains all possible moves
-    # Array is in best to worst order (best move is at index 0)
-    # A moves are single integers like '288' not coordinates
     def infer_distribution(self, game, current_model=None):
+        """
+        Returns a numpy array which contains all possible moves
+        Array is in best to worst order (best move is at index 0)
+        A moves are single integers like '288' not coordinates
+        """
         if current_model is None:
             current_model = self.model
 
@@ -49,9 +49,11 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
             return dist[1].numpy()[0] # Returns allow the list of moves removing the tensor
 
-    # Returns the model's best predicted move as tuple where index 0 is x and index y is 1
-    # Returned move is always legal
     def infer_best_move(self, game, total_moves=0, current_model=None, random_skip=True):
+        """
+        Returns the model's best predicted move as tuple where index 0 is x and index y is 1
+        Returned move is always legal
+        """
         if current_model is None:
             current_model = self.model
 
@@ -85,10 +87,12 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
     def recommend_move(self, game): # Return the move the best model would play
         return self.infer_best_move(game, current_model=self.best_model, random_skip=False)
 
-    # Returns where to user's move falls in the model's predicted distribution
-    # If the user picked what the model thinks is the best move then the play is given rank 0
     @staticmethod
     def find_rank_in_distribution(distribution, move):
+        """
+        Returns where to user's move falls in the model's predicted distribution
+        If the user picked what the model thinks is the best move then the play is given rank 0
+        """
         x,y = move
         x-=1
         y-=1
@@ -100,8 +104,10 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
         return index[0][0]
 
-    # Returns a label for the quality of the user's move
     def rate_move(self, distribution, move):
+        """
+        Returns a label for the quality of the user's move
+        """
         rank = self.find_rank_in_distribution(distribution, move)
 
         if rank < 21:
@@ -114,19 +120,16 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
     def rate_user_move(self, game, move): # Must be called before updating sente with the users move
         return self.rate_move(self.infer_distribution(game, current_model=self.best_model), move)
 
-    # Implementation of 'Bouzy's Algorithm' to estimate the score of the game
-    # The algorithm was recommended and explained in part by AI
-    # The code here is based on the AI description of the algorithm and uses the AI recommended kernal, convolve, and threshold level (0.2)
-    # However the code is unique to our system because of how sente handle's the board internally
-    # All code was written by hand
     @staticmethod
     def create_score_heat_map(game):
+        """
+        Implementation of 'Bouzy's Algorithm' to estimate the score of the game
+        """
         board_array = np.zeros((19, 19))
         board_array[game.numpy()[:, :, 0] == 1] = 1 # Black stones are 1
         board_array[game.numpy()[:, :, 1] == 1] = -1 # White stones are -1
 
         heat_map = board_array.copy()
-        #print(heat_map)
 
         kernal = np.array([
             [0.0, 0.1, 0.0],
@@ -141,8 +144,11 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
         return heat_map
 
-    # Uses the territory heat map to estimate the score of the game and return
+
     def estimate_score(self, game):
+        """
+        Uses the territory heat map to estimate the score of the game and return
+        """
         territory_map = self.create_score_heat_map(game)
         black = np.sum(territory_map > 0.2)
         white = np.sum(territory_map < -0.2)

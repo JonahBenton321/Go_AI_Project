@@ -1,4 +1,3 @@
-
 import sente
 import tkinter as tk
 from tkinter import simpledialog
@@ -363,6 +362,6 @@ class winnerPage:
         self.blackVictoryPlayAgain.pack()
         
 if __name__ == '__main__':
-    app = SelectionScreen() # This was brought to you by Google AI.
+    app = SelectionScreen()
     root.focus_set() # Allows for hotkeys
     root.mainloop() # Main loop over entire file.
