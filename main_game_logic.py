@@ -253,12 +253,12 @@ class GOGame:
         self.gameBoard.config(text=str(self.game), font = "Courier 10")
         global turnedOnRater
         if turnedOnRater:
-            self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
+            self.moveRating.config(text="User Move Rating: " + rateMove, fg="Black", font="Verdana 15 bold")
         else:
             pass
         global turnedOnRecommended
         if turnedOnRecommended:
-            self.bestMove.config(text="Recommend Move: " + recommendMove, font="Verdana 20 bold")
+            self.bestMove.config(text="Recommend Move: " + recommendMove, fg="Black", font="Verdana 20 bold")
         else:
             pass
         self.turnIndicator.config(text="\nYOUR TURN", font = "Verdana 15 bold")
@@ -285,13 +285,13 @@ class GOGame:
 
         global turnedOnRater
         if turnedOnRater:
-            self.moveRating.config(text="User Move Rating: " + rateMove, font="Verdana 15 bold")
+            self.moveRating.config(text="User Move Rating: " + rateMove, fg="Black", font="Verdana 15 bold")
         else:
             pass
 
         global turnedOnRecommended
         if turnedOnRecommended:
-            self.bestMove.config(text="Recommend Move: " + recommendMove, font="Verdana 20 bold")
+            self.bestMove.config(text="Recommend Move: " + recommendMove, fg="Black", font="Verdana 20 bold")
         else:
             pass
 
