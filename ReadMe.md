@@ -254,7 +254,7 @@ This code is tasked with periodically printing updates to the console and ending
 
 All put together this code can convert an arbitrary number of SGF files into usable numpy data frames for model training and evaluation.
 
-# Casey Perlinger-Jett - main_game_logic.py
+## Casey Perlinger-Jett - main_game_logic.py
 The section of code main_game_logic.py is the main file for all UI elements of the project. The file itself contains all code for menuing, UI, and the user-side of playing the game of GO, with the occasional AI Model call too. This is the front-end of the GO project powered by python tkinter.
 ```python
 # NOTICE: The was restructured into the __init__() and other def X() style under classes through
@@ -420,7 +420,7 @@ Our software uses a suite of automated tests to ensure that the model component 
 
 We test the move rating system by creating a test distribution of moves by deterministically Shuffling an array containing values from 1 to 361. This replicates the distribution created by the model’s inference function. Because the array is created deterministically, we can manually find the correct rating for each move by manually looking up its position in the array. Once we know the correct rating, we can submit the array to the model’s rating function and test to see if the produced ratings match the ratings we manually determined.
 # References
-During development we used ChatGPT and Google Gemini mainly as knowledge tools to help with using frameworks like NumPy, Sente, and Pytorch. Due to unfamiliarity with Pytorch Gemini was used to generate code which creates and evaluates AI models although the code was altered for our purposes. All AI generated code is marked by comments in the project files
+During development we used ChatGPT and Google Gemini mainly as knowledge tools to help with using frameworks like NumPy, Sente, and Pytorch. Due to unfamiliarity with Pytorch Gemini was used to generate code which creates and evaluates AI models although the code was altered for our purposes.
 
 The medium article Understanding ResNet Architecture: A Deep Dive into Residual Neural Network by Azeem – 1 was used to help understand and explain ResNet Architecture.
 
