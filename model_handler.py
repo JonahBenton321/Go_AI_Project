@@ -5,11 +5,7 @@ import sente
 from scipy.ndimage import convolve
 from sente import sgf, stone
 import torch
-from GoPolicyNet import GoPolicyResNet
-
-#model = GoPolicyResNet()
-#best_model = GoPolicyResNet()
-#color = sente.WHITE # default to white
+from go_policy_net import GoPolicyResNet
 
 class AIHandler: # Main class which handles interaction with the systems AI models
 
@@ -19,7 +15,7 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
         self.model.load_state_dict(state_dict)
 
         self.best_model = GoPolicyResNet()
-        state_dict = torch.load('Go_model_8d.pth', weights_only=True, map_location=torch.device('cpu')) # This is the model trained on the highest skill level
+        state_dict = torch.load('models/Go_Model_8d.pth', weights_only=True, map_location=torch.device('cpu')) # This is the model trained on the highest skill level
         self.best_model.load_state_dict(state_dict)
 
         self.color = sente.WHITE  # default to white
@@ -91,7 +87,8 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
 
     # Returns where to user's move falls in the model's predicted distribution
     # If the user picked what the model thinks is the best move then the play is given rank 0
-    def find_rank_in_distribution(self, distribution, move):
+    @staticmethod
+    def find_rank_in_distribution(distribution, move):
         x,y = move
         x-=1
         y-=1
@@ -122,7 +119,8 @@ class AIHandler: # Main class which handles interaction with the systems AI mode
     # The code here is based on the AI description of the algorithm and uses the AI recommended kernal, convolve, and threshold level (0.2)
     # However the code is unique to our system because of how sente handle's the board internally
     # All code was written by hand
-    def create_score_heat_map(self, game):
+    @staticmethod
+    def create_score_heat_map(game):
         board_array = np.zeros((19, 19))
         board_array[game.numpy()[:, :, 0] == 1] = 1 # Black stones are 1
         board_array[game.numpy()[:, :, 1] == 1] = -1 # White stones are -1

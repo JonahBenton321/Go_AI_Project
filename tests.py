@@ -6,7 +6,7 @@ from model_handler import AIHandler
 game = sgf.load(r'TestGame.sgf',ignore_illegal_properties=True, fix_file_format=True, disable_warnings=True) # Random game to test on
 sequence = game.get_default_sequence()
 
-model = AIHandler('Go_Model_8d.pth')
+model = AIHandler('models/Go_Model_8d.pth')
 
 class TestModelHandler(unittest.TestCase):
     def test_infer_distribution(self):
@@ -70,12 +70,12 @@ class TestModelHandler(unittest.TestCase):
 
     def test_multi_models(self):# ensures tests work with all models
 
-        model.set_main_model('Go_Model_1k.pth')
+        model.set_main_model('models/Go_Model_1k.pth')
         self.test_infer_distribution()
         self.test_infer_move()
         self.test_move_rating()
 
-        model.set_main_model('Go_Model_18k.pth')
+        model.set_main_model('models/Go_Model_18k.pth')
         self.test_infer_distribution()
         self.test_infer_move()
         self.test_move_rating()

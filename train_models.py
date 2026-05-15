@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from GoPolicyNet import GoPolicyResNet
+from go_policy_net import GoPolicyResNet
 
 total_frames = 1000000 # total frames to use for training/testing
 test_frames = 10000 # frames to hold out of training for test purposes
@@ -57,7 +57,6 @@ for epoch in range(1):
         loss.backward()
         optimizer.step()
 
-# AI generated
         with torch.no_grad():
             # 1. Calculate Top-1 Accuracy
             _, predicted_move = torch.max(preds, 1)
@@ -135,9 +134,8 @@ def evaluate_model(model, test_loader, device):
     # Put model back into training mode
     model.train()
     return final_acc1, final_acc5
-# End of AI generated block
 
-# create test set
+# Create test set
 test_dataset = TensorDataset(
     torch.from_numpy(X_test).permute(0, 3, 1, 2).float(),
     torch.from_numpy(y_test).long().view(-1)
@@ -153,10 +151,4 @@ test_loader = DataLoader(
 
 print(evaluate_model(model, test_loader, device))
 
-torch.save(model.state_dict(), 'Go_Model_18k.pth')
-
-# 20.7
-# 44.99
-
-# 24
-# 47
+torch.save(model.state_dict(), 'models/Go_Model_Name.pth')

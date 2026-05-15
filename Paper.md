@@ -339,16 +339,17 @@ def turnOnModel8d(self):
     print("Go_model_8d.pth")
 ```
 One of the three functions called from the above radio buttons. Each sets the other two model variables to False and its own to True such that you can click the buttons as many times as you want and not have to worry about issues arising. (Also because by default model 8d is set to True in case the user doesn’t go into settings so that it doesn’t crash.) It also contains a print statement to test that the buttons are working.
+
 ```python
 model_path = ''
 if model8dON:
-    model_path = "Go_model_8d.pth"
+    model_path = "models/Go_Model_8d.pth"
     print("Go_model_8d.pth")
 elif model1kON:
-    model_path = "Go_model_1k.pth"
+    model_path = "models/Go_Model_1k.pth"
     print("Go_model_1k.pth")
 elif model18kON:
-    model_path = "Go_model_18k.pth"
+    model_path = "models/Go_Model_18k.pth"
     print("Go_model_18k.pth")
 ```
 Getting into the GOGame class now, here actually sets the AI model by going into the AIHandler file with the respective model path, and then prints out the path to test which model actually gets sent to the model_handler file.

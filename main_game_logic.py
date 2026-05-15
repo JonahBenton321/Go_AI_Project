@@ -1,6 +1,3 @@
-# NOTICE: The was restructured into the __init__() and other def X() style under classes through
-# the direct involvement of Google AI.
-# The underlying code was freshly sourced through articles and YouTube tutorials.
 
 import sente
 import tkinter as tk
@@ -25,16 +22,19 @@ class SelectionScreen:
     turnIndicator = tk.Label(root, text="\nSTART\n", font = "Verdana 15 bold")
     turnIndicator.pack()
 
+    @staticmethod
     def playGO():
         global game
         game = sente.Game()
         new_window = tk.Toplevel(root)
         GOGame(new_window)
 
+    @staticmethod
     def goToSettings():
         new_window = tk.Toplevel(root)
         settingsPage(new_window)
 
+    @staticmethod
     def goToExplanation():
         new_window = tk.Toplevel(root)
         explanationPage(new_window)
@@ -139,13 +139,13 @@ class GOGame:
         self.game = sente.Game()
         model_path = ''
         if model8dON:
-            model_path = "Go_model_8d.pth"
+            model_path = "models/Go_Model_8d.pth"
             print("Go_model_8d.pth")
         elif model1kON:
-            model_path = "Go_model_1k.pth"
+            model_path = "models/Go_Model_1k.pth"
             print("Go_model_1k.pth")
         elif model18kON:
-            model_path = "Go_model_18k.pth"
+            model_path = "models/Go_Model_18k.pth"
             print("Go_model_18k.pth")
         user_color = simpledialog.askstring("Input", "Black(B) or White(W) or Self(S): ")
         # # AIStrength = simpledialog.askstring("Input", "AI Level (0) (1) or (2)?: ")
@@ -154,11 +154,11 @@ class GOGame:
         self.topLabel.pack()
         self.gameBoard = tk.Label(root, text=str(game), font = "Courier 10")
         self.gameBoard.pack()
-        self.gameCordKey = tk.Label(root, text="    1  2  3   4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19", fg="Black", font = "Courier 10")
+        self.gameCordKey = tk.Label(root, text="    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19", fg="Black", font = "Courier 10")
         self.gameCordKey.pack()
-        self.moveRating = tk.Label(root, text="Previous Move Rating: (0.XXX)", fg = "White", font = "Verdana 15 bold")
+        self.moveRating = tk.Label(root, text="Previous Move Rating: (0.XXX)", fg = "Black", font = "Verdana 15 bold")
         self.moveRating.pack()
-        self.bestMove = tk.Label(root, text="Best Move: (X,Y)\n", fg = "White", font = "Verdana 15 bold")
+        self.bestMove = tk.Label(root, text="Best Move: (X,Y)\n", fg = "Black", font = "Verdana 15 bold")
         self.bestMove.pack()
         self.turnIndicator = tk.Label(root, text="\nYOUR TURN", font = "Verdana 15 bold")
         self.turnIndicator.pack()
