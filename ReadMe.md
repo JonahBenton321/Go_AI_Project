@@ -1,38 +1,9 @@
 # Introduction
 Our system was designed with the primary motivation of providing users with a human-like opponent for the Chinese game Go. Most Go-based software is designed to offer a virtual opponent optimized around winning matches.  We wanted to create a virtual set of opponents that would play more in a human-like style while still presenting some moderate challenge to the end user. The system creates a virtual Go game and presents an interactive UI for the user. The software offers the user the choice between three different AI models trained on three different skill levels of data. This creates a set of optional opponents at varying levels of difficulty. The software also utilizes the model trained on the highest tier of human data to serve as a move rating and recommendation system. These functions help the user to improve their skill with the game and make decisions in tough areas of strategy. Overall, the goal of the software is to help users improve skill in the game without presenting virtual opponents optimized for victory alone.
-# Time Log
-| Name | Hours | Time | Description |
-| :--- | :----: | :----: | :--- |
-| Casey | 4 hours | Mar. 18, 2026, 9:00pm - 1:00am | Introduced myself to tkinter and its UI capabilities. |
-| Casey | 2 hours | Mar. 19, 2026, 9:30am - 11:30am | Started small by coding GO to display and play in the terminal. |
-| Casey | 6 hours | April 9, 2026, 12:00pm - 4:00pm; 10:00pm - 12:00am | Begun to, and made ample progress in, creating the GO game to run in tkinter. |
-| Casey | 2 hours | April 15, 2026, 11:00pm - 1:00am | Attempted to make progress on the process of windows setting and help menus. |
-| Casey | 7 hours | April 16, 2026, 11:00am - 4:00pm; 5:00pm - 7:00pm | Refactored SenteGO into classes, and it made the coding process a lot easier. Thanks, Google AI. |
-| Casey | 1.5 hours | April 17, 2026, 12:00pm - 1:30pm | Once again looked into the settings and help menu, but this time made noticeable progress. |
-| Casey | 5.5 hours | April 19, 2026, 2:30pm - 5:00pm; 10:00pm - 1:00am | Got all the menus sorted out and working along with setting up for what should hopefully be an easy plug-n-play process for the AI models. |
-| Casey | 7 hours | April 20, 2026, 11:00am - 1:00pm; 2:00pm - 4:00pm; 9:00pm - 12:00m | Attempted to do things regarding plugging the AI model into the code and so far nothing is working. I also attempted to add a winnerPage for the end of the game. |
-| Casey | 5 hours | April 24, 2026, 12:30pm - 1:30pm; 8:00pm - 12:00m | After a break I’m trying again and it didn’t work, so instead I’m working on other aspects like creating toggleable features like the move rater/recommenders. I’ve discovered the problem, and it’s because I have a MacBook. |
-| Casey | 4 hours | April 25, 206, 9:00pm - 1:00am | I've gotten the code to work on my machine now and I'm starting to implement end game aspects such as the final results screen. |
-| Casey | 11 hours | April 26, 2026, 12:00n-5:00pm; 6:00pm-12:00m | Now it’s the final stretch of making sure everything works and everything is implemented such as the toggleable settings. Along with making sure all AI code is flagged as such. |
-| Casey TOTAL | 55 hours | . | . |
 
-| Name | Hours | Task | Accomplished |
-| :--- | :----: | :----: | :--- |
-| Jonah | ~5  | Create data pipline for training | Wrote conversion code to convert SGF files to memmory mapped numpy arrays|
-| Jonah | 6.5 | Train RF model to play Go | None (complete failure)|
-| Jonah | 5 | Train logistic regression model to play Go | None (complete failure) |
-| Jonah | 1.7| Train pytorch model to play Go at 8d skill level | Completed successfully |
-| Jonah | 2| Write first version of model componet | Added infer move function, and test cases |
-| Jonah | 2 | Improve model code to allow pass/resign moves| Added Bouzy Algorithm to estimate game outcomes for passing/resigning at the right time |
-| Jonah | 4.5 | Add the rest of model componet, and test cases | Added rate/recommend move functionality, and test cases |
-| Jonah | 1.5 | Train two more models, 1k, 18k skill level, and polished existing code | Used existing data pipline to create more models, added more commets to code |
-| Jonah | 1 hours| Fix known issue where AI would play moves in the wrong space | Fixed translation math |
-| Jonah | 2 hours | Fix issues with model and main game logic componets not interacting without crash/wrong behavior| Fixed self play logic, fixed issue where models whould not run on cpu, fixed poor UI scaling, fixed wrong UI colors fixed issue where resigning would break game over screen |
-| Jonah | 1 hours | Play test game| Found that code works as needed |
-| Jonah TOTAL | 32.2 hours | . | . |
+This software was orignally created as university course final project.
 
-
-# Requirements
+# Original Project Requirements
 ## Go Game Engine - complete
 Our system presents a fully functional game of Go to the user using the Sente library as the primary engine to run the game of Go on the back end. Our system offers an interactive UI to allow human users to smoothly input moves and see model responses displayed on the game board.
 ## Neural Network AI - complete
@@ -49,17 +20,6 @@ Our move quality rater queries the model trained on the highest skill level of h
 ## Move Recommendations - complete
 The move recommendation system works in a similar manner to the move quality rater. The best model is shown in the current state of the board and asked to predict which move is the best. The move is shown to the users as a coordinate on the game board and they may freely choose if they wish to play the recommended move.
 
-## Unfinished
-The following are a list of wanted features which we did not start development on for this project.
--	Option to undo moves.
--	Option to Save the current game state.
--	Create a fine-tuned AI opponent using self-play.
--	Option to watch games between different AI models.
--	Option to add handicap cap stones.
--	Nine AI opponents three in the beginner, adept, and professional categories of increasing difficulty.
--	Options to pick board size from 7x7, 9x9, 13x13, and 19x19.
--	Game highlight review, which allows the user to review moves of great consequence to the game’s outcome.
--	Players’ game statistics such as average move quality, average time spent thinking per move and total number of mistakes.
 # Design and Overall Structure
 Our system uses Three main frameworks spread over five individual components to achieve the system core functionality. Below can be seen a diagram which describes the relationships between our core components. The arrow represents which components talk to which other components. Dashed connections represent relationships not used during normal play but were used during model training.
 ![Alt text](Images/diagram.png)
@@ -77,8 +37,6 @@ Our project uses three main frameworks to achieve core functionality Pytorch, Se
 -	Sente serves as the system Go engine running and managing the game
 -	NumPy creates data frames for AI training.
 -	Tkinker is used to create a User Interface
-## Desing Pattern
-The Data Pipeline component employes and iterator design pattern to loop over every file in a directory for the purpose of converting those files to training data.
 # Implementation
 The following is description of key components frameworks, and other systems are implemented.
 ## Sente and the GO Engine
@@ -118,12 +76,13 @@ The breakdown of the skill levels is as follows:
 |---------------------|---------------|------------------------|
 |Essay model|18k|This rank is often given to beginners who are just starting|
 |Intermediate Model|1k|This rank is achieved by skilled beginners|
-|Hard Model 8d|8d|This rank is just before professional level and only achieved after years of experience|
+|Hard Model|8d|This rank is just before professional level and only achieved after years of experience|
 
 Unfortunately, the public repository we used did not have enough games at the professional level to serve as sufficient training data, so we used next best rank ‘dan’ as a replacement. Altogether our models trained on approximately 5000 games in their respective categories.
 
-# exemplary pieces of code
-# Jonah Benton - convertSGFtoNumpy.py
+# Code Explanations
+the following are explanation of major software componets writen by the respective authors.
+## Jonah Benton - convert_SGF_to_Numpy.py
 The section of code convertSGFtoNumpy.py is the primary element of the Data Pipeline and is responsible for converting raw SGF files to numpy data frames which can serve as X and y data for model training. Because our models attempt to predict what a human would play for a given board state the X data represents the state of the board and the y data represents the move a real human played on that state. 
 
 The following function in convertSGFtoNumpy.py is responsible for converting an entire SGF file into X data.
@@ -455,39 +414,12 @@ The project allows for the user to select their piece color when they decide to 
 The project should be able to detect the end of a game so that it can display the results. By employing the AI model to play against itself, we are able to run through a simulated game quickly to test whether the game will properly end or if an error regarding the mainloop() occurs.
 ## UI Game Output
 The project utilizes tkinter for its UI. This test is a manual test that simply looks to observe that the game board is correctly updated after every user turn and AI turn, including the removal of captured stones. Along with the Move Rater and Move Recommender, getting correctly updated after each round of user and AI moves.
-## Test Driven Development
-The purpose of this test was to ensure that the inference function produced a list of 361 distinct integers which serve as a ranking of each possible move. Should the function fail to return a list of integers of the appropriate properties the test will fail.
 
-Failing test:
+## Automated Tests
+Our software uses a suite of automated tests to ensure that the model component of the systems functions appropriately.  We use a test game originally played by humans to ensure that the model components’ inference ability is functioning appropriately. By looping over every board state in the task game and prompting the model to infer a move we can check the inferred moves to ensure that they are both legal and within the playable area. 
 
-![Alt text](Images/fail_1.png)
-
-This test failed because the function returned an integer object rather than an array of distinct integers. The function incorrectly returned an editor object in an attempt to convert the model output into an integer array. Code was refactored to return the entire data object without casting to an integer.
-
-
-Second Failure:
-
-![Alt text](Images/fail_2.png)
-
-The test failed because the function returned an array of two data objects, the output tensor and a list of integers which encodes the board locations from highest to lowest quality. The code was refactored to return the second object.
-
-Third Failure:
-
-![Alt text](Images/fail_3.png)
-
-This test failed because the array of integers that needed to be outputted was wrapped in another object array which caused its length to be interpreted as one rather than 361. Code was refactored to incorporate a numpy conversion which unwrapped the object and successfully returned the array of 361 integers passing the test.
-## Test Driven Development 2
-The purpose of this test is to ensure that the game opens the ending results window when the game comes to an end. To test this I used the AI self play to quickly iterate through a test game. The test began with its first failure of what happens when the AI runs out of moves. At the time it turns out the code just creashed.
-![Alt text](Images/Refactoring_endGame()_1.png)
-So the code needed a few cases patched up, which is what happened afterwards. However then a new problem arised.
-![Alt text](Imasges/Refactoring_endGame()_2.png)
-The issue is that in the game of GO when both players pass their turn consecutively, the game ends, however, as we can see that wasn't the case here. Instead it just continued on forever.
-![Alt text](Images/Refactoring_endGame()_3.png)
-Here on the third, documented, iteration of the testing, we were able to get it to recognize a statement within the function upon the game ending, however, it was not able to call a function outside of the iteratng selfplay function which I found very odd.
-![Alt text](Images/Refactoring_endGame()_4.png)
-In this case it there was a slight bit of human error. 'self.endGame()' is the working code, however, it requires a 'return' after the function call otherwise it can't escape the playing loop the game was currently in. Thus after adding a 'return' to the end of the endGame statement it was able to properly load the results screen, passing our test.
-
-## References
+We test the move rating system by creating a test distribution of moves by deterministically Shuffling an array containing values from 1 to 361. This replicates the distribution created by the model’s inference function. Because the array is created deterministically, we can manually find the correct rating for each move by manually looking up its position in the array. Once we know the correct rating, we can submit the array to the model’s rating function and test to see if the produced ratings match the ratings we manually determined.
+# References
 During development we used ChatGPT and Google Gemini mainly as knowledge tools to help with using frameworks like NumPy, Sente, and Pytorch. Due to unfamiliarity with Pytorch Gemini was used to generate code which creates and evaluates AI models although the code was altered for our purposes. All AI generated code is marked by comments in the project files
 
 The medium article Understanding ResNet Architecture: A Deep Dive into Residual Neural Network by Azeem – 1 was used to help understand and explain ResNet Architecture.
