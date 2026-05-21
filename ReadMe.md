@@ -419,6 +419,10 @@ The project utilizes tkinter for its UI. This test is a manual test that simply 
 Our software uses a suite of automated tests to ensure that the model component of the systems functions appropriately.  We use a test game originally played by humans to ensure that the model components’ inference ability is functioning appropriately. By looping over every board state in the task game and prompting the model to infer a move we can check the inferred moves to ensure that they are both legal and within the playable area. 
 
 We test the move rating system by creating a test distribution of moves by deterministically Shuffling an array containing values from 1 to 361. This replicates the distribution created by the model’s inference function. Because the array is created deterministically, we can manually find the correct rating for each move by manually looking up its position in the array. Once we know the correct rating, we can submit the array to the model’s rating function and test to see if the produced ratings match the ratings we manually determined.
+
+# How to Run
+Install requirments and run main_game_logic.py.
+
 # References
 During development we used ChatGPT and Google Gemini mainly as knowledge tools to help with using frameworks like NumPy, Sente, and Pytorch. Due to unfamiliarity with Pytorch Gemini was used to generate code which creates and evaluates AI models although the code was altered for our purposes.
 
